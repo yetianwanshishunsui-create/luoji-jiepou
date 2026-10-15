@@ -1,0 +1,25 @@
+{
+  "name": "@luoji/shared",
+  "version": "0.1.0",
+  "private": true,
+  "description": "前后端共享的枚举、类型、常量",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.cjs.json && tsc -p tsconfig.esm.json && echo '{\"type\":\"commonjs\"}' > dist/cjs/package.json && echo '{\"type\":\"module\"}' > dist/esm/package.json",
+    "typecheck": "tsc -p tsconfig.cjs.json --noEmit",
+    "test": "echo \"shared: no tests\""
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
+}

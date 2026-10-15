@@ -1,0 +1,47 @@
+# 逻辑解剖小程序 monorepo 的 CI
+name: luoji-miniprogram CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build:shared
+
+      - name: server · typecheck + unit tests + build
+        run: |
+          pnpm --filter @luoji/server typecheck
+          pnpm --filter @luoji/server test
+          pnpm --filter @luoji/server build
+
+      - name: admin · typecheck + build
+        run: pnpm --filter @luoji/admin build
+
+      - name: miniapp · typecheck + build (mp-weixin)
+        env:
+          VITE_API_BASE: https://api.example.com
+        run: |
+          pnpm --filter @luoji/miniapp typecheck
+          pnpm --filter @luoji/miniapp build:mp-weixin
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mp-weixin
+          path: apps/miniapp/dist/build/mp-weixin
+          retention-days: 7

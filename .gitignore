@@ -1,0 +1,15 @@
+node_modules/
+dist/
+unpackage/
+coverage/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# 根目录 .gitignore 忽略了 .npmrc，本项目需要提交（uni-app 依赖 shamefully-hoist）
+!.npmrc

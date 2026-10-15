@@ -1,0 +1,19 @@
+{
+  "name": "luoji-jiepou-miniprogram",
+  "private": true,
+  "description": "逻辑解剖教学服务小程序 monorepo：小程序 / 管理后台 / 后端",
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build:shared": "pnpm --filter @luoji/shared build",
+    "dev:server": "pnpm --filter @luoji/server start:dev",
+    "dev:admin": "pnpm --filter @luoji/admin dev",
+    "dev:miniapp": "pnpm --filter @luoji/miniapp dev:mp-weixin",
+    "build": "pnpm build:shared && pnpm -r --filter=!@luoji/shared build",
+    "typecheck": "pnpm build:shared && pnpm -r typecheck",
+    "test": "pnpm build:shared && pnpm -r test",
+    "db:up": "docker compose -f deploy/docker-compose.dev.yml up -d"
+  }
+}

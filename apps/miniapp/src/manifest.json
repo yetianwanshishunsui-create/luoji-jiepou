@@ -1,0 +1,25 @@
+{
+  "name": "逻辑解剖",
+  "appid": "",
+  "description": "逻辑解剖教学服务小程序",
+  "versionName": "0.1.0",
+  "versionCode": "1",
+  "transformPx": false,
+  "mp-weixin": {
+    "appid": "",
+    "setting": {
+      "urlCheck": false,
+      "es6": true,
+      "minified": true
+    },
+    "usingComponents": true,
+    "lazyCodeLoading": "requiredComponents",
+    "__usePrivacyCheck__": true,
+    "requiredBackgroundModes": ["audio"]
+  },
+  "h5": {
+    "router": { "mode": "hash" }
+  },
+  "uniStatistics": { "enable": false },
+  "vueVersion": "3"
+}

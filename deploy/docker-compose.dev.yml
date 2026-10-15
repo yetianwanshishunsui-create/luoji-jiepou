@@ -1,0 +1,33 @@
+# 本地开发依赖：MySQL 8 + Redis 7
+# 启动：pnpm db:up（在仓库根目录）
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: luoji-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root_dev_pwd
+      MYSQL_DATABASE: luoji
+      MYSQL_USER: luoji
+      MYSQL_PASSWORD: luoji_dev_pwd
+      TZ: Asia/Shanghai
+    command: ['--character-set-server=utf8mb4', '--collation-server=utf8mb4_0900_ai_ci']
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./mysql-init.sql:/docker-entrypoint-initdb.d/01-grant.sql:ro
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', '127.0.0.1', '-uroot', '-proot_dev_pwd']
+      interval: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    container_name: luoji-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+
+volumes:
+  mysql-data:

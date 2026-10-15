@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE `admin_users` ADD COLUMN `token_version` INTEGER NOT NULL DEFAULT 0,
+    ADD COLUMN `updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3);

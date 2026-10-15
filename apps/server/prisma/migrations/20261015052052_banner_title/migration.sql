@@ -1,0 +1,4 @@
+-- AlterTable：updated_at 带默认值，已有数据的表也能直接迁移
+ALTER TABLE `banners` ADD COLUMN `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    ADD COLUMN `title` VARCHAR(64) NOT NULL DEFAULT '',
+    ADD COLUMN `updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3);

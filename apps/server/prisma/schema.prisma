@@ -1,0 +1,604 @@
+// 逻辑解剖小程序 · 数据模型（对应技术方案第 5 节）
+// 约定：金额一律用“分”（Int）；敏感字段 *_enc 为应用层 AES-256-GCM 密文，*_hash 为 HMAC-SHA256 检索哈希。
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ───────────────────────────── 枚举（与 @luoji/shared 保持一致） ─────────────────────────────
+
+enum IdentityType {
+  DOCTOR
+  PRACTITIONER
+}
+
+enum CertStatus {
+  UNSUBMITTED
+  PENDING
+  APPROVED
+  REJECTED
+  REVOKED
+}
+
+enum ProductType {
+  COURSE
+  COLUMN
+  SERIES
+  OFFLINE
+}
+
+enum PricingMode {
+  FREE
+  PAID
+}
+
+enum PublishStatus {
+  DRAFT
+  ONLINE
+  OFFLINE
+}
+
+enum LessonType {
+  VIDEO
+  AUDIO
+  ARTICLE
+}
+
+enum PriceRuleType {
+  EARLY_BIRD
+  LIMITED_TIME
+}
+
+enum CouponType {
+  FULL_REDUCTION // 满减
+  DIRECT // 立减
+}
+
+enum CouponScope {
+  ALL
+  CATEGORY
+  PRODUCT
+}
+
+enum UserCouponStatus {
+  UNUSED
+  LOCKED
+  USED
+  EXPIRED
+}
+
+enum OrderStatus {
+  CREATED
+  PAID
+  CLOSED
+  CANCELLED
+  REFUNDING
+  REFUNDED
+}
+
+enum OrderPurpose {
+  PRODUCT
+  OFFLINE_DEPOSIT
+  OFFLINE_BALANCE
+}
+
+enum RefundStatus {
+  PROCESSING
+  SUCCESS
+  FAILED
+}
+
+enum EnrollmentStatus {
+  DEPOSIT_PENDING
+  DEPOSIT_PAID
+  COMPLETED
+  CANCELLED
+}
+
+enum EntitlementSource {
+  ORDER
+  FREE
+  GIFT // 二期：赠课 / 兑换码
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  CONVERTED
+  INVALID
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  OPERATOR
+  REVIEWER
+  FINANCE
+}
+
+// ───────────────────────────── 用户与认证 ─────────────────────────────
+
+model User {
+  id           String        @id @default(cuid())
+  openid       String        @unique @db.VarChar(64)
+  unionid      String?       @unique @db.VarChar(64)
+  phoneEnc     String?       @map("phone_enc") @db.VarChar(255)
+  phoneHash    String?       @unique @map("phone_hash") @db.VarChar(64)
+  phoneMasked  String?       @map("phone_masked") @db.VarChar(20)
+  nickname     String?       @db.VarChar(64)
+  avatar       String?       @db.VarChar(512)
+  identityType IdentityType? @map("identity_type")
+  certStatus   CertStatus    @default(UNSUBMITTED) @map("cert_status")
+  disabled     Boolean       @default(false)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  certifications Certification[]
+  orders         Order[]
+  entitlements   Entitlement[]
+  progresses     LearningProgress[]
+  userCoupons    UserCoupon[]
+  enrollments    Enrollment[]
+
+  @@index([certStatus])
+  @@map("users")
+}
+
+/// 认证申请：每次提交一条，保留历史
+model Certification {
+  id            String       @id @default(cuid())
+  userId        String       @map("user_id")
+  identityType  IdentityType @map("identity_type")
+  realNameEnc   String       @map("real_name_enc") @db.VarChar(255)
+  licenseNoEnc  String?      @map("license_no_enc") @db.VarChar(255)
+  licenseNoHash String?      @map("license_no_hash") @db.VarChar(64)
+  organization  String?      @db.VarChar(128)
+  /// COS 私有桶对象 key 列表
+  files         Json
+  status        CertStatus   @default(PENDING)
+  rejectReason  String?      @map("reject_reason") @db.VarChar(255)
+  reviewerId    String?      @map("reviewer_id")
+  reviewedAt    DateTime?    @map("reviewed_at")
+  /// 二期 OCR 预留
+  ocrResult     Json?        @map("ocr_result")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+
+  user     User       @relation(fields: [userId], references: [id])
+  reviewer AdminUser? @relation(fields: [reviewerId], references: [id])
+
+  @@index([userId])
+  @@index([status, createdAt])
+  @@index([licenseNoHash])
+  @@map("certifications")
+}
+
+// ───────────────────────────── 内容体系 ─────────────────────────────
+
+/// 二级分类（parentId 为空即一级）
+model Category {
+  id        String  @id @default(cuid())
+  parentId  String? @map("parent_id")
+  name      String  @db.VarChar(64)
+  sort      Int     @default(0)
+  /// 可见身份，例如 ["DOCTOR","PRACTITIONER"]
+  visibleTo Json    @map("visible_to")
+  enabled   Boolean @default(true)
+
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryTree")
+  products Product[]
+
+  @@index([parentId, sort])
+  @@map("categories")
+}
+
+model Product {
+  id          String        @id @default(cuid())
+  type        ProductType
+  title       String        @db.VarChar(128)
+  subtitle    String?       @db.VarChar(255)
+  cover       String?       @db.VarChar(512)
+  detailHtml  String?       @map("detail_html") @db.MediumText
+  pricingMode PricingMode   @default(PAID) @map("pricing_mode")
+  priceCent   Int           @default(0) @map("price_cent")
+  /// 划线价
+  originCent  Int?          @map("origin_cent")
+  visibleTo   Json          @map("visible_to")
+  status      PublishStatus @default(DRAFT)
+  sort        Int           @default(0)
+  categoryId  String?       @map("category_id")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  category     Category?        @relation(fields: [categoryId], references: [id])
+  chapters     Chapter[]
+  priceRules   PriceRule[]
+  sessions     OfflineSession[]
+  orderItems   OrderItem[]
+  entitlements Entitlement[]
+  /// 专栏 / 系列包含的子产品
+  children     ProductItem[]    @relation("ParentProduct")
+  parents      ProductItem[]    @relation("ChildProduct")
+
+  @@index([status, type, sort])
+  @@index([categoryId])
+  @@map("products")
+}
+
+model ProductItem {
+  id             String @id @default(cuid())
+  productId      String @map("product_id")
+  childProductId String @map("child_product_id")
+  sort           Int    @default(0)
+
+  product      Product @relation("ParentProduct", fields: [productId], references: [id])
+  childProduct Product @relation("ChildProduct", fields: [childProductId], references: [id])
+
+  @@unique([productId, childProductId])
+  @@map("product_items")
+}
+
+model Chapter {
+  id        String @id @default(cuid())
+  productId String @map("product_id")
+  title     String @db.VarChar(128)
+  sort      Int    @default(0)
+
+  product Product  @relation(fields: [productId], references: [id])
+  lessons Lesson[]
+
+  @@index([productId, sort])
+  @@map("chapters")
+}
+
+model Lesson {
+  id           String     @id @default(cuid())
+  chapterId    String     @map("chapter_id")
+  type         LessonType
+  title        String     @db.VarChar(128)
+  /// 腾讯云 VOD FileId
+  vodFileId    String?    @map("vod_file_id") @db.VarChar(64)
+  audioKey     String?    @map("audio_key") @db.VarChar(512)
+  contentHtml  String?    @map("content_html") @db.MediumText
+  /// 时长（秒）
+  duration     Int        @default(0)
+  isTrial      Boolean    @default(false) @map("is_trial")
+  /// 试看时长（秒），0 表示整节免费
+  trialSeconds Int        @default(0) @map("trial_seconds")
+  sort         Int        @default(0)
+
+  chapter    Chapter            @relation(fields: [chapterId], references: [id])
+  progresses LearningProgress[]
+
+  @@index([chapterId, sort])
+  @@map("lessons")
+}
+
+/// 每日 60 秒音频
+model DailyAudio {
+  id          String        @id @default(cuid())
+  publishDate DateTime      @unique @map("publish_date") @db.Date
+  title       String        @db.VarChar(128)
+  audioKey    String        @map("audio_key") @db.VarChar(512)
+  duration    Int           @default(60)
+  visibleTo   Json          @map("visible_to")
+  status      PublishStatus @default(DRAFT)
+
+  @@map("daily_audios")
+}
+
+// ───────────────────────────── 营销 ─────────────────────────────
+
+/// 早鸟价 / 限时价：在时间窗内覆盖产品售价
+model PriceRule {
+  id        String        @id @default(cuid())
+  productId String        @map("product_id")
+  type      PriceRuleType
+  priceCent Int           @map("price_cent")
+  startAt   DateTime      @map("start_at")
+  endAt     DateTime      @map("end_at")
+  enabled   Boolean       @default(true)
+
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([productId, startAt, endAt])
+  @@map("price_rules")
+}
+
+model Coupon {
+  id            String      @id @default(cuid())
+  name          String      @db.VarChar(64)
+  type          CouponType
+  /// 满减门槛（分），立减为 0
+  thresholdCent Int         @default(0) @map("threshold_cent")
+  discountCent  Int         @map("discount_cent")
+  scope         CouponScope @default(ALL)
+  /// scope=CATEGORY/PRODUCT 时的目标 ID 列表
+  scopeIds      Json?       @map("scope_ids")
+  /// 发放总量，0 表示不限
+  totalCount    Int         @default(0) @map("total_count")
+  issuedCount   Int         @default(0) @map("issued_count")
+  /// 每人最多领取 / 持有张数（后台定向发放不受此限）
+  perUserLimit  Int         @default(1) @map("per_user_limit")
+  /// 使用说明，展示在券面
+  description   String?     @db.VarChar(255)
+  /// 用户可主动领取
+  claimable     Boolean     @default(false)
+  validFrom     DateTime    @map("valid_from")
+  validTo       DateTime    @map("valid_to")
+  enabled       Boolean     @default(true)
+  createdAt     DateTime    @default(now()) @map("created_at")
+
+  userCoupons UserCoupon[]
+
+  @@map("coupons")
+}
+
+model UserCoupon {
+  id          String           @id @default(cuid())
+  userId      String           @map("user_id")
+  couponId    String           @map("coupon_id")
+  status      UserCouponStatus @default(UNUSED)
+  usedOrderId String?          @map("used_order_id")
+  claimedAt   DateTime         @default(now()) @map("claimed_at")
+  usedAt      DateTime?        @map("used_at")
+
+  user   User   @relation(fields: [userId], references: [id])
+  coupon Coupon @relation(fields: [couponId], references: [id])
+
+  @@index([userId, status])
+  @@index([couponId, status])
+  @@map("user_coupons")
+}
+
+// ───────────────────────────── 交易 ─────────────────────────────
+
+model Order {
+  id              String       @id @default(cuid())
+  orderNo         String       @unique @map("order_no") @db.VarChar(32)
+  userId          String       @map("user_id")
+  purpose         OrderPurpose @default(PRODUCT)
+  status          OrderStatus  @default(CREATED)
+  totalCent       Int          @map("total_cent")
+  discountCent    Int          @default(0) @map("discount_cent")
+  payCent         Int          @map("pay_cent")
+  /// 已成功退款金额（分），部分退款后订单仍为 PAID
+  refundedCent    Int          @default(0) @map("refunded_cent")
+  userCouponId    String?      @map("user_coupon_id")
+  wxTransactionId String?      @unique @map("wx_transaction_id") @db.VarChar(64)
+  paidAt          DateTime?    @map("paid_at")
+  expireAt        DateTime     @map("expire_at")
+  closedAt        DateTime?    @map("closed_at")
+  remark          String?      @db.VarChar(255)
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  user              User          @relation(fields: [userId], references: [id])
+  items             OrderItem[]
+  refunds           Refund[]
+  depositEnrollment Enrollment?   @relation("DepositOrder")
+  balanceEnrollment Enrollment?   @relation("BalanceOrder")
+  entitlements      Entitlement[]
+
+  @@index([userId, createdAt])
+  @@index([status, expireAt])
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String @id @default(cuid())
+  orderId   String @map("order_id")
+  productId String @map("product_id")
+  /// 下单时快照
+  title     String @db.VarChar(128)
+  priceCent Int    @map("price_cent")
+  quantity  Int    @default(1)
+
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+model Refund {
+  id                String       @id @default(cuid())
+  orderId           String       @map("order_id")
+  refundNo          String       @unique @map("refund_no") @db.VarChar(32)
+  amountCent        Int          @map("amount_cent")
+  status            RefundStatus @default(PROCESSING)
+  reason            String?      @db.VarChar(255)
+  operatorId        String?      @map("operator_id")
+  /// 退款成功后是否收回学习权益（全额退款默认收回）
+  revokeEntitlement Boolean      @default(false) @map("revoke_entitlement")
+  /// 微信支付退款单号
+  wxRefundId        String?      @map("wx_refund_id") @db.VarChar(64)
+  failReason        String?      @map("fail_reason") @db.VarChar(255)
+  createdAt         DateTime     @default(now()) @map("created_at")
+  finishedAt        DateTime?    @map("finished_at")
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  @@index([orderId])
+  @@index([status, createdAt])
+  @@map("refunds")
+}
+
+model OfflineSession {
+  id           String   @id @default(cuid())
+  productId    String   @map("product_id")
+  title        String   @db.VarChar(128)
+  startAt      DateTime @map("start_at")
+  endAt        DateTime @map("end_at")
+  address      String   @db.VarChar(255)
+  quota        Int
+  depositCent  Int      @map("deposit_cent")
+  balanceCent  Int      @map("balance_cent")
+  /// 尾款截止时间
+  balanceDueAt DateTime @map("balance_due_at")
+  enabled      Boolean  @default(true)
+
+  product     Product      @relation(fields: [productId], references: [id])
+  enrollments Enrollment[]
+
+  @@index([productId, startAt])
+  @@map("offline_sessions")
+}
+
+model Enrollment {
+  id                 String           @id @default(cuid())
+  userId             String           @map("user_id")
+  sessionId          String           @map("session_id")
+  contactName        String           @map("contact_name") @db.VarChar(64)
+  contactPhoneEnc    String           @map("contact_phone_enc") @db.VarChar(255)
+  contactPhoneMasked String           @default("") @map("contact_phone_masked") @db.VarChar(20)
+  depositOrderId     String?          @unique @map("deposit_order_id")
+  balanceOrderId     String?          @unique @map("balance_order_id")
+  status             EnrollmentStatus @default(DEPOSIT_PENDING)
+  cancelledAt        DateTime?        @map("cancelled_at")
+  cancelReason       String?          @map("cancel_reason") @db.VarChar(255)
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+
+  user         User           @relation(fields: [userId], references: [id])
+  session      OfflineSession @relation(fields: [sessionId], references: [id])
+  depositOrder Order?         @relation("DepositOrder", fields: [depositOrderId], references: [id])
+  balanceOrder Order?         @relation("BalanceOrder", fields: [balanceOrderId], references: [id])
+
+  @@index([userId])
+  @@index([sessionId, status])
+  @@map("enrollments")
+}
+
+/// 学习权益：“能看什么”与“买了什么”解耦，二期分销 / 兑换码 / 赠课只需写入本表
+model Entitlement {
+  id        String            @id @default(cuid())
+  userId    String            @map("user_id")
+  productId String            @map("product_id")
+  source    EntitlementSource
+  orderId   String?           @map("order_id")
+  expireAt  DateTime?         @map("expire_at")
+  createdAt DateTime          @default(now()) @map("created_at")
+
+  user    User    @relation(fields: [userId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+  order   Order?  @relation(fields: [orderId], references: [id])
+
+  @@unique([userId, productId])
+  @@map("entitlements")
+}
+
+model LearningProgress {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  lessonId  String   @map("lesson_id")
+  /// 播放位置（秒）
+  position  Int      @default(0)
+  duration  Int      @default(0)
+  completed Boolean  @default(false)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user   User   @relation(fields: [userId], references: [id])
+  lesson Lesson @relation(fields: [lessonId], references: [id])
+
+  @@unique([userId, lessonId])
+  @@index([userId, updatedAt])
+  @@map("learning_progress")
+}
+
+// ───────────────────────────── 招商 ─────────────────────────────
+
+model Lead {
+  id           String     @id @default(cuid())
+  openid       String?    @db.VarChar(64)
+  name         String     @db.VarChar(64)
+  phoneEnc     String     @map("phone_enc") @db.VarChar(255)
+  phoneHash    String     @map("phone_hash") @db.VarChar(64)
+  phoneMasked  String     @map("phone_masked") @db.VarChar(20)
+  city         String?    @db.VarChar(64)
+  organization String?    @db.VarChar(128)
+  intention    String?    @db.VarChar(255)
+  /// 后台可配置的扩展字段
+  extra        Json?
+  status       LeadStatus @default(NEW)
+  remark       String?    @db.VarChar(500)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  @@index([status, createdAt])
+  @@index([phoneHash])
+  @@map("leads")
+}
+
+// ───────────────────────────── 运营配置 ─────────────────────────────
+
+model Banner {
+  id           String        @id @default(cuid())
+  /// 为空表示两类身份都展示
+  identityType IdentityType? @map("identity_type")
+  position     String        @db.VarChar(32)
+  /// 后台识别用标题，也作为图片替代文本
+  title        String        @default("") @db.VarChar(64)
+  image        String        @db.VarChar(512)
+  link         String?       @db.VarChar(512)
+  sort         Int           @default(0)
+  onlineAt     DateTime?     @map("online_at")
+  offlineAt    DateTime?     @map("offline_at")
+  enabled      Boolean       @default(true)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @default(now()) @updatedAt @map("updated_at")
+
+  @@index([position, identityType, sort])
+  @@map("banners")
+}
+
+/// 通用键值配置：首页推荐位、招商页区块、认证证件字段等
+model SiteConfig {
+  key       String   @id @db.VarChar(64)
+  value     Json
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("site_configs")
+}
+
+// ───────────────────────────── 后台 ─────────────────────────────
+
+model AdminUser {
+  id           String    @id @default(cuid())
+  username     String    @unique @db.VarChar(32)
+  passwordHash String    @map("password_hash") @db.VarChar(255)
+  name         String    @db.VarChar(32)
+  role         AdminRole @default(OPERATOR)
+  disabled     Boolean   @default(false)
+  /// 令牌版本：重置密码 / 停用 / 改角色时 +1，使已签发的登录态立即失效
+  tokenVersion Int       @default(0) @map("token_version")
+  lastLoginAt  DateTime? @map("last_login_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  reviewedCertifications Certification[]
+  auditLogs              AuditLog[]
+
+  @@map("admin_users")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  adminId   String?  @map("admin_id")
+  action    String   @db.VarChar(64)
+  target    String?  @db.VarChar(128)
+  detail    Json?
+  ip        String?  @db.VarChar(64)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  admin AdminUser? @relation(fields: [adminId], references: [id])
+
+  @@index([adminId, createdAt])
+  @@index([action, createdAt])
+  @@map("audit_logs")
+}
