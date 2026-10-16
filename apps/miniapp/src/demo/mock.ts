@@ -312,6 +312,8 @@ const routes: [string, RegExp, Handler][] = [
     /^\/api\/v1\/cert\/submit$/,
     (s, d) => {
       if (s.user.certStatus === 'PENDING' || s.user.certStatus === 'APPROVED') fail(ErrorCode.CERT_STATE_INVALID, '当前状态不能重复提交');
+      if (!String(d.licenseNo ?? '').trim()) fail(ErrorCode.BAD_REQUEST, '请填写执业证号 / 资格证号');
+      if (!String(d.organization ?? '').trim()) fail(ErrorCode.BAD_REQUEST, '请填写所在医院 / 机构');
       s.user.identityType = d.identityType as IdentityType;
       s.user.nickname = String(d.realName || '演示学员');
       s.user.certStatus = 'PENDING';

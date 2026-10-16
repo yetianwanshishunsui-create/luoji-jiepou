@@ -32,11 +32,11 @@
         <view class="label">真实姓名</view>
         <input v-model="form.realName" class="input" maxlength="32" placeholder="与证件一致" />
 
-        <view class="label">{{ form.identityType === 'DOCTOR' ? '医师执业证号' : '资格证 / 工作证编号' }}（选填）</view>
-        <input v-model="form.licenseNo" class="input" maxlength="64" placeholder="便于加快审核" />
+        <view class="label">{{ form.identityType === 'DOCTOR' ? '医师执业证号' : '资格证 / 工作证编号' }}</view>
+        <input v-model="form.licenseNo" class="input" maxlength="64" placeholder="与证件一致" />
 
-        <view class="label">{{ form.identityType === 'DOCTOR' ? '所在医院' : '所在机构' }}（选填）</view>
-        <input v-model="form.organization" class="input" maxlength="128" />
+        <view class="label">{{ form.identityType === 'DOCTOR' ? '所在医院' : '所在机构' }}</view>
+        <input v-model="form.organization" class="input" maxlength="128" placeholder="请填写全称" />
 
         <view class="label">证件照片（{{ files.length }}/6）</view>
         <view class="files">
@@ -73,7 +73,9 @@ const submitting = ref(false);
 
 const DEMO = import.meta.env.VITE_DEMO === 'true';
 // 演示版可不传证件直接提交
-const canSubmit = computed(() => !!form.realName.trim() && (files.value.length > 0 || DEMO));
+const canSubmit = computed(
+  () => !!form.realName.trim() && !!form.licenseNo.trim() && !!form.organization.trim() && (files.value.length > 0 || DEMO),
+);
 
 /**
  * 选择证件照片并直传 COS 私有桶。
@@ -108,8 +110,8 @@ async function submit() {
     await api.certSubmit({
       identityType: form.identityType,
       realName: form.realName.trim(),
-      licenseNo: form.licenseNo.trim() || undefined,
-      organization: form.organization.trim() || undefined,
+      licenseNo: form.licenseNo.trim(),
+      organization: form.organization.trim(),
       files: files.value.map((f) => f.key),
     });
     // TODO(WP03)：提交后请求订阅消息授权（审核结果通知）

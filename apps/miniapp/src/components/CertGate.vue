@@ -4,7 +4,6 @@
     <view class="title">{{ title }}</view>
     <view class="muted desc">{{ desc }}</view>
     <button v-if="status !== 'PENDING'" class="btn-primary" @click="goCert">去认证</button>
-    <button class="link" @click="goJoin">我是从业者，了解合作</button>
   </view>
   <slot v-else />
 </template>
@@ -27,7 +26,6 @@ const desc = computed(() =>
 );
 
 const goCert = () => uni.navigateTo({ url: '/pages/cert/index' });
-const goJoin = () => uni.navigateTo({ url: '/pages/join/index' });
 </script>
 
 <style lang="scss" scoped>
@@ -43,14 +41,5 @@ const goJoin = () => uni.navigateTo({ url: '/pages/join/index' });
 .desc {
   margin: 20rpx 0 48rpx;
   line-height: 1.6;
-}
-.link {
-  margin-top: 24rpx;
-  background: transparent;
-  color: $brand;
-  font-size: 26rpx;
-  &::after {
-    border: none;
-  }
 }
 </style>

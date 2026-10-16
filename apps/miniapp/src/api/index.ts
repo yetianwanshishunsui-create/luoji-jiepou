@@ -135,7 +135,7 @@ export const api = {
       latest: { status: CertStatus; rejectReason: string | null } | null;
     }>({ url: '/api/v1/cert' }),
   certUploadSign: () => request<unknown>({ url: '/api/v1/cert/upload-sign', method: 'POST', silent: true }),
-  certSubmit: (data: { identityType: IdentityType; realName: string; licenseNo?: string; organization?: string; files: string[] }) =>
+  certSubmit: (data: { identityType: IdentityType; realName: string; licenseNo: string; organization: string; files: string[] }) =>
     request<{ id: string }>({ url: '/api/v1/cert/submit', method: 'POST', data }),
 
   home: () =>
