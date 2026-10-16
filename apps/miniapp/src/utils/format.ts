@@ -15,6 +15,12 @@ export function couponCondition(c: { type: 'FULL_REDUCTION' | 'DIRECT'; threshol
   return c.type === 'DIRECT' ? '无门槛' : `满${yuan(c.thresholdCent)}可用`;
 }
 
+/** 2026.10.16 14:30 */
+export function dateTime(s: string): string {
+  const d = new Date(s);
+  return `${shortDate(s)} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
 export function shortDate(s: string): string {
   const d = new Date(s);
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;

@@ -8,4 +8,6 @@ declare module '*.vue' {
 
 interface ImportMetaEnv {
   readonly VITE_API_BASE?: string;
+  /** 演示版：接口在本机模拟，见 src/demo */
+  readonly VITE_DEMO?: string;
 }

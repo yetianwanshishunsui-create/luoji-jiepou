@@ -31,11 +31,20 @@
         <text class="muted">›</text>
       </view>
     </view>
+    <view v-if="DEMO" class="card demo">
+      <view class="demo-title">演示工具</view>
+      <view class="muted">演示版数据只保存在本机。切换身份可对比医生 / 从业者看到的首页和课程。</view>
+      <view class="demo-actions">
+        <button size="mini" :class="{ 'btn-primary': user.profile?.identityType === 'DOCTOR' }" @click="demoSwitch('DOCTOR')">切换为医生</button>
+        <button size="mini" :class="{ 'btn-primary': user.profile?.identityType === 'PRACTITIONER' }" @click="demoSwitch('PRACTITIONER')">切换为从业者</button>
+        <button size="mini" @click="demoReset">重新开始体验</button>
+      </view>
+    </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { CertStatusLabel, IdentityTypeLabel } from '@luoji/shared';
+import { CertStatusLabel, IdentityTypeLabel, type IdentityType } from '@luoji/shared';
 import { onShow } from '@dcloudio/uni-app';
 import { computed } from 'vue';
 import { useUserStore } from '@/stores/user';
@@ -49,6 +58,29 @@ const certText = computed(() => {
 });
 
 const go = (url: string) => uni.navigateTo({ url });
+
+const DEMO = import.meta.env.VITE_DEMO === 'true';
+
+async function demoSwitch(identity: IdentityType) {
+  const { switchIdentity } = await import('@/demo/mock');
+  switchIdentity(identity);
+  await user.refreshProfile();
+  uni.showToast({ title: `已切换为${IdentityTypeLabel[identity]}`, icon: 'none' });
+}
+
+function demoReset() {
+  uni.showModal({
+    title: '重新开始体验',
+    content: '将清空本机的演示数据（订单、优惠券、学习进度），回到未认证的新用户状态',
+    success: async ({ confirm }) => {
+      if (!confirm) return;
+      const { resetDemo } = await import('@/demo/mock');
+      resetDemo();
+      user.profile = null;
+      uni.reLaunch({ url: '/pages/index/index' });
+    },
+  });
+}
 
 // TODO(WP03)：头像昵称填写（chooseAvatar / nickname 输入框）、手机号授权
 onShow(async () => {
@@ -84,6 +116,20 @@ onShow(async () => {
   border-bottom: 1rpx solid #f0f2f1;
   &:last-child {
     border-bottom: none;
+  }
+}
+.demo-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 8rpx;
+}
+.demo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-top: 20rpx;
+  button {
+    margin: 0;
   }
 }
 </style>

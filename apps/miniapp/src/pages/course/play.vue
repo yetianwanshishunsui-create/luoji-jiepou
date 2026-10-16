@@ -13,7 +13,13 @@
         @pause="flush"
         @ended="flush"
       />
-      <view v-else class="video placeholder">视频播放待接入腾讯云点播（WP05）</view>
+      <view v-else class="video placeholder">
+        <text>{{ DEMO ? '演示版不含真实视频，正式版接入腾讯云点播播放' : '视频播放待接入腾讯云点播（WP05）' }}</text>
+        <template v-if="DEMO && !trialEnded">
+          <text class="demo-pos">已观看 {{ fmtPos(position) }}</text>
+          <button size="mini" class="btn-primary" @click="demoWatch">模拟观看 1 分钟</button>
+        </template>
+      </view>
       <!-- 动态水印：用于追溯录屏外传 -->
       <view class="watermark" :style="{ top: wm.top, left: wm.left }">{{ watermark }}</view>
       <view v-if="trialEnded" class="trial-mask">
@@ -26,7 +32,7 @@
       <rich-text :nodes="sign.contentHtml || ''" />
     </view>
 
-    <view v-else class="card muted">音频播放待接入（WP05）</view>
+    <view v-else class="card muted">{{ DEMO ? '演示版不含真实音频，正式版支持后台播放' : '音频播放待接入（WP05）' }}</view>
 
     <view v-if="sign.access.mode === 'TRIAL'" class="card muted">
       可试看 {{ sign.access.trialSeconds }} 秒，购买后解锁完整内容
@@ -42,6 +48,7 @@ import { useUserStore } from '@/stores/user';
 
 /** 上报间隔（秒） */
 const REPORT_INTERVAL = 15;
+const DEMO = import.meta.env.VITE_DEMO === 'true';
 
 const user = useUserStore();
 const sign = ref<PlaySign>();
@@ -72,6 +79,18 @@ function onTimeUpdate(e: Event) {
     trialEnded.value = true;
   }
   if (position.value - lastReported >= REPORT_INTERVAL) flush();
+}
+
+const fmtPos = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+
+/** 演示版：没有真实视频，用按钮推进播放进度，体验试看结束与进度续播 */
+function demoWatch() {
+  position.value += 60;
+  if (sign.value?.access.mode === 'TRIAL' && position.value >= sign.value.access.trialSeconds) {
+    position.value = sign.value.access.trialSeconds;
+    trialEnded.value = true;
+  }
+  flush();
 }
 
 function flush() {
@@ -111,11 +130,19 @@ onUnload(() => {
   height: 422rpx;
 }
 .placeholder {
+  flex-direction: column;
+  gap: 20rpx;
+  padding: 0 40rpx;
+  text-align: center;
+  font-size: 26rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #1d2421;
   color: #ccc;
+}
+.demo-pos {
+  color: #fff;
 }
 .watermark {
   position: absolute;

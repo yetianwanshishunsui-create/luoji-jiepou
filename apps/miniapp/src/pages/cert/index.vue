@@ -3,6 +3,7 @@
     <view v-if="state?.certStatus === 'PENDING'" class="card status">
       <view class="status-title">审核中</view>
       <view class="muted">已收到你的认证资料，审核通过后会通过服务通知告知你</view>
+      <view v-if="DEMO" class="muted demo-tip">演示版：约 3 秒后自动审核通过</view>
     </view>
 
     <view v-else-if="state?.certStatus === 'APPROVED'" class="card status">
@@ -70,7 +71,9 @@ const form = reactive({ identityType: IdentityType.DOCTOR as IdentityType, realN
 const files = ref<{ local: string; key: string }[]>([]);
 const submitting = ref(false);
 
-const canSubmit = computed(() => !!form.realName.trim() && files.value.length > 0);
+const DEMO = import.meta.env.VITE_DEMO === 'true';
+// 演示版可不传证件直接提交
+const canSubmit = computed(() => !!form.realName.trim() && (files.value.length > 0 || DEMO));
 
 /**
  * 选择证件照片并直传 COS 私有桶。
@@ -83,7 +86,12 @@ async function choose() {
   if (!res) return;
 
   try {
-    await api.certUploadSign();
+    const sign = await api.certUploadSign();
+    if ((sign as { demo?: boolean } | null)?.demo) {
+      // 演示版：只在本机预览，不上传
+      ([] as string[]).concat(res.tempFilePaths).forEach((local, i) => files.value.push({ local, key: `demo-${Date.now()}-${i}` }));
+      return;
+    }
   } catch {
     uni.showToast({ title: '证件上传服务接入中（WP03）', icon: 'none' });
     return;
@@ -107,6 +115,7 @@ async function submit() {
     // TODO(WP03)：提交后请求订阅消息授权（审核结果通知）
     uni.showToast({ title: '已提交，等待审核', icon: 'success' });
     await Promise.all([load(), user.refreshProfile()]);
+    if (DEMO) setTimeout(() => Promise.all([load(), user.refreshProfile()]).catch(() => undefined), 3200);
   } finally {
     submitting.value = false;
   }
@@ -180,6 +189,10 @@ onShow(async () => {
   justify-content: center;
   font-size: 60rpx;
   color: $text-secondary;
+}
+.demo-tip {
+  margin-top: 16rpx;
+  color: $brand;
 }
 .tip {
   margin-top: 16rpx;

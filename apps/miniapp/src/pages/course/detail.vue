@@ -162,7 +162,7 @@ async function buy() {
   try {
     const order = await api.createOrder({ productId: id, userCouponId: selectedId.value ?? undefined });
     checkout.value = null;
-    if (await payOrder(order.orderNo)) {
+    if (await payOrder(order.orderNo, order.payCent)) {
       uni.showToast({ title: '购买成功', icon: 'success' });
       await load();
     } else {

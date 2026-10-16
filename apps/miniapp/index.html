@@ -9,6 +9,25 @@
         '<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0' +
         (coverSupport ? ', viewport-fit=cover' : '') + '" />')
     </script>
+    <script>
+      // 浏览器禁用本地存储（无痕模式、内嵌预览等）时用内存代替，避免 H5 启动失败
+      (function () {
+        try {
+          window.localStorage.getItem('__probe');
+        } catch (e) {
+          var m = {};
+          var mem = {
+            getItem: function (k) { return Object.prototype.hasOwnProperty.call(m, k) ? m[k] : null; },
+            setItem: function (k, v) { m[k] = String(v); },
+            removeItem: function (k) { delete m[k]; },
+            clear: function () { m = {}; },
+            key: function (i) { return Object.keys(m)[i] || null; },
+            get length() { return Object.keys(m).length; },
+          };
+          try { Object.defineProperty(window, 'localStorage', { configurable: true, get: function () { return mem; } }); } catch (e2) {}
+        }
+      })();
+    </script>
     <title>逻辑解剖</title>
     <!--preload-links-->
     <!--app-context-->

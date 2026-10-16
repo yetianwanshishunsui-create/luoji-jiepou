@@ -8,6 +8,7 @@
     "build:mp-weixin": "uni build -p mp-weixin",
     "dev:h5": "uni",
     "build:h5": "uni build",
+    "build:demo": "uni build --mode demo",
     "build": "uni build -p mp-weixin",
     "typecheck": "vue-tsc --noEmit",
     "test": "echo \"miniapp: no tests\""

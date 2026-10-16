@@ -50,7 +50,21 @@ async function tryRefresh(): Promise<boolean> {
   return refreshing;
 }
 
+/** 演示版：接口在本机模拟（见 src/demo），不请求服务器 */
+const DEMO = import.meta.env.VITE_DEMO === 'true';
+
+async function demoRaw<T>(opts: Options): Promise<T> {
+  const { mockRequest } = await import('@/demo/mock');
+  try {
+    return (await mockRequest(opts.method ?? 'GET', opts.url, (opts.data ?? {}) as Record<string, unknown>)) as T;
+  } catch (e) {
+    const err = e as { code?: number; message?: string; status?: number };
+    throw new ApiError(err.code ?? ErrorCode.INTERNAL, err.message ?? '请求失败', err.status ?? 500);
+  }
+}
+
 function raw<T>(opts: Options): Promise<T> {
+  if (DEMO) return demoRaw<T>(opts);
   const tokens = tokenStorage.get();
   return new Promise((resolve, reject) => {
     uni.request({

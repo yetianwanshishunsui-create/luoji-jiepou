@@ -85,7 +85,7 @@ async function submit() {
   try {
     const res = await api.enroll(selected.value.id, { name: form.name.trim(), phone: form.phone });
     sheet.value = false;
-    const paid = await payOrder(res.orderNo);
+    const paid = await payOrder(res.orderNo, res.payCent);
     uni.showToast({ title: paid ? '报名成功' : '名额已保留 30 分钟，请尽快支付', icon: paid ? 'success' : 'none' });
     await load();
   } catch {

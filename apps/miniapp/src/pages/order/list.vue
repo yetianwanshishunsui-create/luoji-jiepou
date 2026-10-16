@@ -7,7 +7,7 @@
       </view>
       <view v-for="(it, i) in o.items" :key="i" class="title">{{ it.title }}</view>
       <view class="foot">
-        <text class="muted">{{ new Date(o.createdAt).toLocaleString() }}</text>
+        <text class="muted">{{ dateTime(o.createdAt) }}</text>
         <text class="price">¥{{ yuan(o.payCent) }}</text>
       </view>
       <view v-if="o.refundedCent" class="refunded">已退款 ¥{{ yuan(o.refundedCent) }}</view>
@@ -21,7 +21,7 @@ import { OrderStatusLabel, type OrderStatus } from '@luoji/shared';
 import { onPullDownRefresh, onShow } from '@dcloudio/uni-app';
 import { ref } from 'vue';
 import { api } from '@/api';
-import { yuan } from '@/utils/format';
+import { yuan, dateTime } from '@/utils/format';
 
 type Row = Awaited<ReturnType<typeof api.orders>>['list'][number];
 const list = ref<Row[]>([]);

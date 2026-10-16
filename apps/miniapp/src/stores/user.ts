@@ -15,7 +15,11 @@ function getLoginCode(): Promise<string> {
   let code = uni.getStorageSync('luoji_dev_code') as string;
   if (!code) {
     code = `h5_${Date.now()}`;
-    uni.setStorageSync('luoji_dev_code', code);
+    try {
+      uni.setStorageSync('luoji_dev_code', code);
+    } catch {
+      /* 本地存储不可用 */
+    }
   }
   return Promise.resolve(code);
   // #endif

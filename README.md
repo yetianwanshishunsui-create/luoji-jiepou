@@ -56,6 +56,16 @@ pnpm dev:miniapp           # 用微信开发者工具导入 apps/miniapp/dist/de
 - `WX_MOCK_LOGIN=true`：登录不请求微信接口，H5 和接口工具都能直接调试。
 - `PAY_MOCK=true`：支付和退款走模拟网关并立即成功，商户号开通前可以完整联调下单、支付、退款。
 
+## 演示版（无需后端）
+
+学员端可以编译成一个纯前端的 H5 演示版，在手机浏览器里直接体验：接口在浏览器本地模拟（`apps/miniapp/src/demo/`），课程、价格、优惠券等为拟定的占位数据，支付为模拟支付，提交认证 3 秒后自动通过，数据只保存在本机。
+
+```bash
+pnpm --filter @luoji/miniapp build:demo   # 产物在 apps/miniapp/dist/build/h5，可放到任意静态托管路径下
+```
+
+演示版只在 `--mode demo`（`.env.demo` 中 `VITE_DEMO=true`）时生效，正式构建不受影响。「我的 → 演示工具」可切换医生 / 从业者身份或重新开始体验。
+
 ## 后台账号与角色
 
 首个超级管理员由种子脚本创建（`.env` 中的 `SEED_ADMIN_USERNAME` / `SEED_ADMIN_PASSWORD`），上线后请立即在「右上角 → 修改密码」中修改。其余账号在「系统 → 管理员」中创建：

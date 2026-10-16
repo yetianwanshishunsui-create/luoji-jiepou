@@ -64,7 +64,7 @@ function statusText(e: MyEnrollment) {
 async function payDeposit(e: MyEnrollment) {
   busy.value = e.id;
   try {
-    if (await payOrder(e.depositOrder!.orderNo)) uni.showToast({ title: '定金已支付', icon: 'success' });
+    if (await payOrder(e.depositOrder!.orderNo, e.session.depositCent)) uni.showToast({ title: '定金已支付', icon: 'success' });
     await load();
   } finally {
     busy.value = undefined;
@@ -75,7 +75,7 @@ async function payBalance(e: MyEnrollment) {
   busy.value = e.id;
   try {
     const order = await api.payBalance(e.id);
-    if (await payOrder(order.orderNo)) uni.showToast({ title: '报名完成', icon: 'success' });
+    if (await payOrder(order.orderNo, order.payCent)) uni.showToast({ title: '报名完成', icon: 'success' });
     await load();
   } catch {
     /* 错误提示已在 request 中处理 */
