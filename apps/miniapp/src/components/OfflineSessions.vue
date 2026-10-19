@@ -18,8 +18,8 @@
       <view class="muted line">{{ timeRange(s.startAt, s.endAt) }}</view>
       <view class="muted line">{{ s.address }}</view>
       <view class="line">
-        <text class="price">定金 ¥{{ yuan(s.depositCent) }}</text>
-        <text v-if="s.balanceCent" class="muted"> · 尾款 ¥{{ yuan(s.balanceCent) }}（{{ shortDate(s.balanceDueAt) }} 前付清）</text>
+        <text class="price">{{ s.balanceCent ? '定金' : '全款' }} {{ money(s.depositCent, s.pricePrefix) }}</text>
+        <text v-if="s.balanceCent" class="muted"> · 尾款 {{ money(s.balanceCent, s.pricePrefix) }}（{{ shortDate(s.balanceDueAt) }} 前付清）</text>
       </view>
     </view>
   </view>
@@ -27,7 +27,7 @@
   <view v-if="sessions.length" class="bar">
     <button v-if="selected?.myEnrollment" class="btn-primary" @click="goMine">查看我的报名</button>
     <button v-else class="btn-primary" :disabled="!selected" @click="sheet = true">
-      {{ selected ? `报名并支付定金 ¥${yuan(selected.depositCent)}` : '请选择场次' }}
+      {{ selected ? `报名并支付${selected.balanceCent ? '定金' : ''} ${money(selected.depositCent, selected.pricePrefix)}` : '请选择场次' }}
     </button>
   </view>
 
@@ -40,7 +40,7 @@
     <view class="label">手机号</view>
     <input v-model="form.phone" class="input" type="number" maxlength="11" placeholder="用于开课通知" />
     <view class="muted tip">定金支付后为你保留名额；尾款需在 {{ shortDate(selected.balanceDueAt) }} 前付清。</view>
-    <button class="btn-primary" :loading="submitting" :disabled="!formValid" @click="submit">支付定金 ¥{{ yuan(selected.depositCent) }}</button>
+    <button class="btn-primary" :loading="submitting" :disabled="!formValid" @click="submit">支付{{ selected.balanceCent ? '定金' : '' }} {{ money(selected.depositCent, selected.pricePrefix) }}</button>
   </view>
 </template>
 
@@ -48,7 +48,7 @@
 import { EnrollmentStatusLabel } from '@luoji/shared';
 import { computed, reactive, ref, watch } from 'vue';
 import { api, type OfflineSessionView } from '@/api';
-import { shortDate, yuan } from '@/utils/format';
+import { money, shortDate, yuan } from '@/utils/format';
 import { payOrder } from '@/utils/pay';
 
 const props = defineProps<{ productId: string; refreshKey: number }>();

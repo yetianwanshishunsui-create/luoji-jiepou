@@ -9,11 +9,11 @@
       </view>
       <view class="muted sub">{{ product.subtitle || ProductTypeLabel[product.type] }}</view>
       <view class="bottom">
-        <text v-if="product.type === 'OFFLINE'" class="price">{{ product.minDepositCent != null ? `定金 ¥${yuan(product.minDepositCent)} 起` : '暂无场次' }}</text>
+        <text v-if="product.type === 'OFFLINE'" class="price">{{ product.minDepositCent != null ? `定金 ${money(product.minDepositCent, product.pricePrefix)} 起` : '暂无场次' }}</text>
         <text v-else-if="product.pricingMode === 'FREE'" class="free">免费</text>
         <template v-else>
-          <text class="price">¥{{ yuan(product.currentPriceCent) }}</text>
-          <text v-if="product.currentPriceCent < product.priceCent" class="origin">¥{{ yuan(product.priceCent) }}</text>
+          <text class="price">{{ money(product.currentPriceCent, product.pricePrefix) }}</text>
+          <text v-if="product.currentPriceCent < product.priceCent" class="origin">{{ money(product.priceCent, product.pricePrefix) }}</text>
         </template>
       </view>
     </view>
@@ -23,7 +23,7 @@
 <script setup lang="ts">
 import { ProductTypeLabel } from '@luoji/shared';
 import type { ProductCard } from '@/api';
-import { yuan } from '@/utils/format';
+import { money } from '@/utils/format';
 
 const props = defineProps<{ product: ProductCard }>();
 const open = () => uni.navigateTo({ url: `/pages/course/detail?id=${props.product.id}` });

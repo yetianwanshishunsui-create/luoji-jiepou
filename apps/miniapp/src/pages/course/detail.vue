@@ -6,13 +6,13 @@
       <view v-if="product.subtitle" class="muted sub">{{ product.subtitle }}</view>
       <view v-if="product.type === 'OFFLINE'" class="price-row">
         <text class="offline-tag">线下课</text>
-        <text v-if="product.minDepositCent != null" class="price">定金 ¥{{ yuan(product.minDepositCent) }} 起</text>
+        <text v-if="product.minDepositCent != null" class="price">定金 {{ money(product.minDepositCent, product.pricePrefix) }} 起</text>
       </view>
       <view v-else class="price-row">
         <text v-if="product.pricingMode === 'FREE'" class="free">免费</text>
         <template v-else>
-          <text class="price big">¥{{ yuan(product.currentPriceCent) }}</text>
-          <text v-if="product.currentPriceCent < product.priceCent" class="origin">¥{{ yuan(product.priceCent) }}</text>
+          <text class="price big">{{ money(product.currentPriceCent, product.pricePrefix) }}</text>
+          <text v-if="product.currentPriceCent < product.priceCent" class="origin">{{ money(product.priceCent, product.pricePrefix) }}</text>
         </template>
         <text v-if="product.owned && product.pricingMode !== 'FREE'" class="owned">已购买</text>
       </view>
@@ -49,7 +49,7 @@
     </view>
 
     <view v-if="!product.owned && product.type !== 'OFFLINE'" class="bar">
-      <button class="btn-primary" :loading="opening" @click="openCheckout">立即购买 ¥{{ yuan(product.currentPriceCent) }}</button>
+      <button class="btn-primary" :loading="opening" @click="openCheckout">立即购买 {{ money(product.currentPriceCent, product.pricePrefix) }}</button>
     </view>
 
     <!-- 结算面板 -->
@@ -61,7 +61,7 @@
       </view>
       <view class="line">
         <text class="muted">课程价格</text>
-        <text>¥{{ yuan(checkout.originCent) }}</text>
+        <text>{{ money(checkout.originCent, checkout.pricePrefix) }}</text>
       </view>
       <view v-if="checkout.priceRule" class="line">
         <text class="muted">{{ checkout.priceRule.type === 'EARLY_BIRD' ? '早鸟优惠' : '限时优惠' }}</text>
@@ -93,7 +93,7 @@
       <view class="pay-row">
         <view>
           <text class="muted">实付 </text>
-          <text class="price big">¥{{ yuan(payCent) }}</text>
+          <text class="price big">{{ money(payCent, checkout.pricePrefix) }}</text>
         </view>
         <button class="btn-primary pay-btn" :loading="buying" @click="buy">去支付</button>
       </view>
@@ -108,7 +108,7 @@ import { api, type CheckoutPreview, type LessonBrief, type ProductDetail } from 
 import OfflineSessions from '@/components/OfflineSessions.vue';
 import { useCountdown } from '@/utils/countdown';
 import { payOrder } from '@/utils/pay';
-import { couponCondition, duration, yuan } from '@/utils/format';
+import { couponCondition, duration, money, yuan } from '@/utils/format';
 
 const typeLabel = { VIDEO: '视频', AUDIO: '音频', ARTICLE: '图文' } as const;
 const product = ref<ProductDetail>();

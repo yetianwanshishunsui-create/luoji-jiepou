@@ -1,3 +1,8 @@
+/** 带前缀的价格：虚拟¥299 / ¥299 */
+export function money(cent: number | null | undefined, prefix?: string | null): string {
+  return `${prefix ?? ''}¥${yuan(cent)}`;
+}
+
 /** 分 → 元 */
 export function yuan(cent: number | null | undefined): string {
   if (cent == null) return '-';

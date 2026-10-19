@@ -69,6 +69,8 @@ export interface DemoSession {
   quota: number;
   /** 演示开始时已被其他学员占用的名额 */
   taken: number;
+  /** 价格为拟定（品牌资料中没有）时标注「虚拟」 */
+  pricePrefix?: string;
 }
 
 export interface DemoProduct {
@@ -88,10 +90,13 @@ export interface DemoProduct {
   /** 专栏 / 系列包含的课程 */
   items?: string[];
   sessions?: DemoSession[];
+  /** 价格为拟定（品牌资料中没有）时标注「虚拟」 */
+  pricePrefix?: string;
 }
 
-const DOCTOR: IdentityType[] = ['DOCTOR'];
 const BOTH: IdentityType[] = ['DOCTOR', 'PRACTITIONER'];
+/** 品牌资料中没有、由我方拟定的价格，显示为「虚拟¥xxx」 */
+const V = '虚拟';
 
 const p = (text: string) => `<p style="line-height:1.8;margin:0 0 12px">${text}</p>`;
 const h = (text: string) => `<p style="font-weight:600;margin:16px 0 8px">${text}</p>`;
@@ -191,7 +196,7 @@ export const PRODUCTS: DemoProduct[] = [
     subtitle: '核心框架课 · 1 天理论 + 1 天标本实操',
     cover: art(['精准解剖实操课', '注射解剖闭门研习会'], '知道 · 用到 · 悟到', 'blue', '2天线下'),
     categoryId: 'c-off-core',
-    visibleTo: DOCTOR,
+    visibleTo: BOTH,
     pricingMode: 'PAID',
     priceCent: 0,
     detailHtml:
@@ -214,7 +219,7 @@ export const PRODUCTS: DemoProduct[] = [
     subtitle: '临床转化课 · 1 天理论 + 1 天真人模特实操',
     cover: art(['注射在左', '解剖在右'], '注射解剖对照课', 'crimson', '2天线下'),
     categoryId: 'c-off-clinic',
-    visibleTo: DOCTOR,
+    visibleTo: BOTH,
     pricingMode: 'PAID',
     priceCent: 0,
     detailHtml:
@@ -226,8 +231,8 @@ export const PRODUCTS: DemoProduct[] = [
       demoNote,
     chapters: [],
     sessions: [
-      { id: 's-inj-gz', title: '广州场', startIn: 40 * DAY, days: 2, address: '广州市（具体地址报名后通知）', depositCent: 300000, balanceCent: 680000, balanceDueIn: 33 * DAY, quota: 24, taken: 16 },
-      { id: 's-inj-cd', title: '成都场', startIn: 68 * DAY, days: 2, address: '成都市（具体地址报名后通知）', depositCent: 300000, balanceCent: 680000, balanceDueIn: 61 * DAY, quota: 24, taken: 9 },
+      { id: 's-inj-gz', title: '广州场', startIn: 40 * DAY, days: 2, address: '广州市（具体地址报名后通知）', depositCent: 300000, balanceCent: 680000, balanceDueIn: 33 * DAY, quota: 24, taken: 16, pricePrefix: V },
+      { id: 's-inj-cd', title: '成都场', startIn: 68 * DAY, days: 2, address: '成都市（具体地址报名后通知）', depositCent: 300000, balanceCent: 680000, balanceDueIn: 61 * DAY, quota: 24, taken: 9, pricePrefix: V },
     ],
   },
   {
@@ -237,7 +242,7 @@ export const PRODUCTS: DemoProduct[] = [
     subtitle: '风险应急课 · 单天理论 · 每 1 针的风险',
     cover: art(['“救”在眼前'], '每 1 针的风险 · 并发症专题', 'navy', '早鸟价'),
     categoryId: 'c-off-risk',
-    visibleTo: DOCTOR,
+    visibleTo: BOTH,
     pricingMode: 'PAID',
     priceCent: 0,
     detailHtml:
@@ -250,7 +255,7 @@ export const PRODUCTS: DemoProduct[] = [
     chapters: [],
     sessions: [
       { id: 's-res-bj', title: '北京专场（早鸟价）', startIn: 21 * DAY, days: 1, address: '北京市（具体地址报名后通知）', depositCent: 468000, balanceCent: 0, balanceDueIn: 14 * DAY, quota: 200, taken: 163 },
-      { id: 's-res-hz', title: '杭州专场', startIn: 52 * DAY, days: 1, address: '杭州市（具体地址报名后通知）', depositCent: 498000, balanceCent: 0, balanceDueIn: 45 * DAY, quota: 150, taken: 41 },
+      { id: 's-res-hz', title: '杭州专场', startIn: 52 * DAY, days: 1, address: '杭州市（具体地址报名后通知）', depositCent: 498000, balanceCent: 0, balanceDueIn: 45 * DAY, quota: 150, taken: 41, pricePrefix: V },
     ],
   },
   {
@@ -260,7 +265,7 @@ export const PRODUCTS: DemoProduct[] = [
     subtitle: '血管安全专项课 · 单天理论',
     cover: art(['驾驭血管的艺术'], '血管安全专项课', 'crimson', '单天理论'),
     categoryId: 'c-off-vessel',
-    visibleTo: DOCTOR,
+    visibleTo: BOTH,
     pricingMode: 'PAID',
     priceCent: 0,
     detailHtml:
@@ -270,7 +275,7 @@ export const PRODUCTS: DemoProduct[] = [
       demoNote,
     chapters: [],
     sessions: [
-      { id: 's-ves-sz', title: '深圳场', startIn: 28 * DAY, days: 1, address: '深圳市（具体地址报名后通知）', depositCent: 468000, balanceCent: 0, balanceDueIn: 21 * DAY, quota: 80, taken: 52 },
+      { id: 's-ves-sz', title: '深圳场', startIn: 28 * DAY, days: 1, address: '深圳市（具体地址报名后通知）', depositCent: 468000, balanceCent: 0, balanceDueIn: 21 * DAY, quota: 80, taken: 52, pricePrefix: V },
     ],
   },
 
@@ -285,6 +290,7 @@ export const PRODUCTS: DemoProduct[] = [
     visibleTo: BOTH,
     pricingMode: 'PAID',
     priceCent: 29900,
+    pricePrefix: V,
     detailHtml: h('系列介绍') + p('以面部层次与解剖为底层逻辑，系统讲解胶原产品的定位、注射与联合治疗。整套购买比单节更优惠。') + demoNote,
     chapters: [],
     items: ['r-col-1', 'r-col-2', 'r-col-3', 'r-col-4'],
@@ -299,6 +305,7 @@ export const PRODUCTS: DemoProduct[] = [
     visibleTo: BOTH,
     pricingMode: 'PAID',
     priceCent: 29900,
+    pricePrefix: V,
     detailHtml: h('系列介绍') + p('从面部层次、韧带支撑到并发症预防，讲清玻尿酸填充背后的解剖与力学逻辑。整套购买比单节更优惠。') + demoNote,
     chapters: [],
     items: ['r-ha-1', 'r-ha-2', 'r-ha-3', 'r-ha-4'],
@@ -310,7 +317,7 @@ export const PRODUCTS: DemoProduct[] = [
     subtitle: '聚焦 SMAS · 精准掌握肉毒素注射核心 · 5 讲',
     cover: art(['肉毒素应用', '+ 解密 SMAS'], '吴宇萌 · 首发深度精讲', 'blue', '5节课程'),
     categoryId: 'c-on-smas',
-    visibleTo: DOCTOR,
+    visibleTo: BOTH,
     pricingMode: 'PAID',
     priceCent: 198000,
     detailHtml:
@@ -349,7 +356,7 @@ export const PRODUCTS: DemoProduct[] = [
     subtitle: '讲师全程讲解 · 第一视角观看 · 已更新 6 期',
     cover: art(['面部精细解剖', '技巧解析'], '讲师全程讲解 · 第一视角观看', 'blue', '视频课程'),
     categoryId: 'c-on-face',
-    visibleTo: DOCTOR,
+    visibleTo: BOTH,
     pricingMode: 'PAID',
     priceCent: 680000,
     rule: { type: 'LIMITED_TIME', priceCent: 498000, endIn: 6 * DAY + 7 * HOUR },
@@ -440,26 +447,24 @@ export const PRODUCTS: DemoProduct[] = [
 ];
 
 export const BANNERS = [
-  { id: 'b1', title: '“救”在眼前 并发症专题 北京专场', image: art(['“救”在眼前'], '并发症专题 · 北京专场 · 早鸟报名中', 'navy', '线下精品课', 750, 320), link: '/pages/course/detail?id=o-rescue', visibleTo: DOCTOR },
-  { id: 'b2', title: '肉毒素应用 + 解密 SMAS', image: art(['肉毒素应用 + 解密 SMAS'], '吴宇萌 · 首发深度精讲 · 5 节课程', 'blue', '线上精品课', 750, 320), link: '/pages/course/detail?id=p-smas', visibleTo: DOCTOR },
+  { id: 'b1', title: '“救”在眼前 并发症专题 北京专场', image: art(['“救”在眼前'], '并发症专题 · 北京专场 · 早鸟报名中', 'navy', '线下精品课', 750, 320), link: '/pages/course/detail?id=o-rescue', visibleTo: BOTH },
+  { id: 'b2', title: '肉毒素应用 + 解密 SMAS', image: art(['肉毒素应用 + 解密 SMAS'], '吴宇萌 · 首发深度精讲 · 5 节课程', 'blue', '线上精品课', 750, 320), link: '/pages/course/detail?id=p-smas', visibleTo: BOTH },
   { id: 'b3', title: '直播课程合集', image: art(['直播课程合集'], '解剖学底层逻辑 · 结合临床操作 · 热门话题', 'teal', '合集', 750, 320), link: '/pages/course/detail?id=s-live', visibleTo: BOTH },
-  { id: 'b4', title: '循证解剖 · 胶原临床应用精讲', image: art(['循证解剖', '胶原临床应用精讲'], '逻辑解剖与胶原产品联合应用系列课', 'blue', '系列课', 750, 320), link: '/pages/course/detail?id=s-collagen', visibleTo: ['PRACTITIONER'] as IdentityType[] },
-  { id: 'b5', title: '品牌协作 · 产品共研 · 教研共建', image: art(['品牌协作 · 产品共研'], '与逻辑解剖一起，服务 5 万+ 医美医生', 'crimson', '合作', 750, 320), link: '/pages/join/index', visibleTo: ['PRACTITIONER'] as IdentityType[] },
+  { id: 'b4', title: '循证解剖 · 胶原临床应用精讲', image: art(['循证解剖', '胶原临床应用精讲'], '逻辑解剖与胶原产品联合应用系列课', 'blue', '系列课', 750, 320), link: '/pages/course/detail?id=s-collagen', visibleTo: BOTH },
+  { id: 'b5', title: '品牌协作 · 产品共研 · 教研共建', image: art(['品牌协作 · 产品共研'], '与逻辑解剖一起，服务 5 万+ 医美医生', 'crimson', '合作', 750, 320), link: '/pages/join/index', visibleTo: BOTH },
 ];
 
-/** 首页推荐栏目：医生 / 从业者分别配置 */
+/** 首页推荐栏目：后台可为医生 / 从业者分别配置，演示中两种身份看到的内容一致 */
+const SECTIONS = [
+  { title: '线下精品课', productIds: ['o-rescue', 'o-dissect', 'o-inject', 'o-vessel'] },
+  { title: '专题课程', productIds: ['p-smas', 'p-face', 's-live'] },
+  { title: '产品系列课', productIds: ['s-collagen', 's-ha'] },
+  { title: '直播回放', productIds: ['r-free-nose', 'r-v1', 'r-m1', 'r-e1'] },
+  { title: '公益讲堂', productIds: ['p-60s', 'p-yxy'] },
+];
 export const HOME_SECTIONS: Record<IdentityType, { title: string; productIds: string[] }[]> = {
-  DOCTOR: [
-    { title: '线下精品课', productIds: ['o-rescue', 'o-dissect', 'o-inject', 'o-vessel'] },
-    { title: '专题课程', productIds: ['p-smas', 'p-face', 's-live'] },
-    { title: '直播回放', productIds: ['r-free-nose', 'r-v1', 'r-m1', 'r-e1'] },
-    { title: '公益讲堂', productIds: ['p-60s', 'p-yxy'] },
-  ],
-  PRACTITIONER: [
-    { title: '产品系列课', productIds: ['s-collagen', 's-ha'] },
-    { title: '直播回放', productIds: ['r-free-nose', 's-live', 'r-v1', 'r-m1'] },
-    { title: '公益讲堂', productIds: ['p-60s', 'p-yxy'] },
-  ],
+  DOCTOR: SECTIONS,
+  PRACTITIONER: SECTIONS,
 };
 
 export const COUPONS = [

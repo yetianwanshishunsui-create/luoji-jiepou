@@ -15,6 +15,8 @@ export interface ProductCard {
   priceRule: { type: 'EARLY_BIRD' | 'LIMITED_TIME'; endAt: string } | null;
   /** 线下课：未开始场次中最低的定金 */
   minDepositCent?: number | null;
+  /** 价格前的说明文字（如演示版的「虚拟」），没有则不显示 */
+  pricePrefix?: string | null;
 }
 
 export interface OfflineSessionView {
@@ -30,6 +32,7 @@ export interface OfflineSessionView {
   remaining: number;
   closed: boolean;
   myEnrollment: { id: string; status: EnrollmentStatus } | null;
+  pricePrefix?: string | null;
 }
 
 export interface MyEnrollment {
@@ -40,7 +43,7 @@ export interface MyEnrollment {
   cancelReason: string | null;
   createdAt: string;
   product: { id: string; title: string; cover: string | null };
-  session: Pick<OfflineSessionView, 'id' | 'title' | 'startAt' | 'endAt' | 'address' | 'depositCent' | 'balanceCent' | 'balanceDueAt'>;
+  session: Pick<OfflineSessionView, 'id' | 'title' | 'startAt' | 'endAt' | 'address' | 'depositCent' | 'balanceCent' | 'balanceDueAt' | 'pricePrefix'>;
   depositOrder: { orderNo: string; status: string; expireAt: string } | null;
   balanceOrder: { orderNo: string; status: string; expireAt: string } | null;
 }
@@ -79,6 +82,7 @@ export interface CheckoutPreview {
   totalCent: number;
   priceRule: { type: 'EARLY_BIRD' | 'LIMITED_TIME'; priceCent: number; endAt: string } | null;
   bestUserCouponId: string | null;
+  pricePrefix?: string | null;
   coupons: (Omit<CouponView, 'discountCent'> & { userCouponId: string; faceCent: number; discountCent: number; reason: string | null })[];
 }
 

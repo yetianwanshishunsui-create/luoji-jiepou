@@ -10,8 +10,8 @@
       <view class="muted line">联系人：{{ e.contactName }} {{ e.contactPhoneMasked }}</view>
 
       <view class="amounts">
-        <text>定金 ¥{{ yuan(e.session.depositCent) }}</text>
-        <text v-if="e.session.balanceCent"> · 尾款 ¥{{ yuan(e.session.balanceCent) }}</text>
+        <text>{{ e.session.balanceCent ? '定金' : '全款' }} {{ money(e.session.depositCent, e.session.pricePrefix) }}</text>
+        <text v-if="e.session.balanceCent"> · 尾款 {{ money(e.session.balanceCent, e.session.pricePrefix) }}</text>
       </view>
       <view v-if="e.status === 'DEPOSIT_PAID'" class="due">请在 {{ fmtDateTime(e.session.balanceDueAt) }} 前付清尾款</view>
       <view v-if="e.status === 'CANCELLED' && e.cancelReason" class="muted line">{{ e.cancelReason }}</view>
@@ -22,7 +22,7 @@
           <button size="mini" class="btn-primary" :loading="busy === e.id" @click="payDeposit(e)">支付定金</button>
         </template>
         <button v-if="e.status === 'DEPOSIT_PAID' && !balanceOverdue(e)" size="mini" class="btn-primary" :loading="busy === e.id" @click="payBalance(e)">
-          支付尾款 ¥{{ yuan(e.session.balanceCent) }}
+          支付尾款 {{ money(e.session.balanceCent, e.session.pricePrefix) }}
         </button>
         <text v-if="e.status === 'DEPOSIT_PAID' && balanceOverdue(e)" class="muted">尾款已逾期，请联系工作人员</text>
       </view>
@@ -36,7 +36,7 @@ import { EnrollmentStatusLabel } from '@luoji/shared';
 import { onPullDownRefresh, onShow } from '@dcloudio/uni-app';
 import { ref } from 'vue';
 import { api, type MyEnrollment } from '@/api';
-import { yuan } from '@/utils/format';
+import { money, yuan } from '@/utils/format';
 import { payOrder } from '@/utils/pay';
 
 const list = ref<MyEnrollment[]>([]);

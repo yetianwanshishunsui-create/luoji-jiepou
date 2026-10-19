@@ -171,6 +171,8 @@ function sessionsOf(s: State, p: DemoProduct) {
 function card(s: State, p: DemoProduct) {
   const rule = activeRule(s, p);
   const open = sessionsOf(s, p).filter((x) => x.startAt > Date.now());
+  // 线下课卡片显示最低定金（及该场次的价格说明）
+  const cheapest = open.length ? open.reduce((a, b) => (b.depositCent < a.depositCent ? b : a)) : null;
   return {
     id: p.id,
     type: p.type,
@@ -182,7 +184,8 @@ function card(s: State, p: DemoProduct) {
     originCent: null,
     currentPriceCent: rule ? rule.priceCent : p.priceCent,
     priceRule: rule ? { type: rule.type, endAt: iso(rule.endAt) } : null,
-    minDepositCent: p.type === 'OFFLINE' ? (open.length ? Math.min(...open.map((x) => x.depositCent)) : null) : undefined,
+    minDepositCent: cheapest ? cheapest.depositCent : p.type === 'OFFLINE' ? null : undefined,
+    pricePrefix: (cheapest ? cheapest.pricePrefix : p.pricePrefix) ?? null,
   };
 }
 
@@ -282,7 +285,7 @@ function enrollmentView(s: State, e: Enrollment) {
     cancelReason: e.cancelReason,
     createdAt: iso(e.createdAt),
     product: { id: p.id, title: p.title, cover: p.cover },
-    session: { id: x.id, title: x.title, startAt: iso(x.startAt), endAt: iso(x.endAt), address: x.address, depositCent: x.depositCent, balanceCent: x.balanceCent, balanceDueAt: iso(x.balanceDueAt) },
+    session: { id: x.id, title: x.title, startAt: iso(x.startAt), endAt: iso(x.endAt), address: x.address, depositCent: x.depositCent, balanceCent: x.balanceCent, balanceDueAt: iso(x.balanceDueAt), pricePrefix: x.pricePrefix ?? null },
     depositOrder: orderBrief(e.depositOrderNo),
     balanceOrder: orderBrief(e.balanceOrderNo),
   };
@@ -442,6 +445,7 @@ const routes: [string, RegExp, Handler][] = [
         totalCent: total,
         priceRule: rule ? { type: rule.type, priceCent: rule.priceCent, endAt: iso(rule.endAt) } : null,
         bestUserCouponId: best?.userCouponId ?? null,
+        pricePrefix: p.pricePrefix ?? null,
         coupons,
       };
     },
@@ -589,6 +593,7 @@ const routes: [string, RegExp, Handler][] = [
           quota: x.quota,
           remaining,
           closed: remaining === 0 || Date.now() >= x.balanceDueAt,
+          pricePrefix: x.pricePrefix ?? null,
           myEnrollment: mine[0] ? { id: mine[0].id, status: mine[0].status } : null,
         };
       });
