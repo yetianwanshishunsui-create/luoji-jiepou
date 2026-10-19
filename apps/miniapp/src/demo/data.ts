@@ -451,7 +451,6 @@ export const BANNERS = [
   { id: 'b2', title: '肉毒素应用 + 解密 SMAS', image: art(['肉毒素应用 + 解密 SMAS'], '吴宇萌 · 首发深度精讲 · 5 节课程', 'blue', '线上精品课', 750, 320), link: '/pages/course/detail?id=p-smas', visibleTo: BOTH },
   { id: 'b3', title: '直播课程合集', image: art(['直播课程合集'], '解剖学底层逻辑 · 结合临床操作 · 热门话题', 'teal', '合集', 750, 320), link: '/pages/course/detail?id=s-live', visibleTo: BOTH },
   { id: 'b4', title: '循证解剖 · 胶原临床应用精讲', image: art(['循证解剖', '胶原临床应用精讲'], '逻辑解剖与胶原产品联合应用系列课', 'blue', '系列课', 750, 320), link: '/pages/course/detail?id=s-collagen', visibleTo: BOTH },
-  { id: 'b5', title: '品牌协作 · 产品共研 · 教研共建', image: art(['品牌协作 · 产品共研'], '与逻辑解剖一起，服务 5 万+ 医美医生', 'crimson', '合作', 750, 320), link: '/pages/join/index', visibleTo: BOTH },
 ];
 
 /** 首页推荐栏目：后台可为医生 / 从业者分别配置，演示中两种身份看到的内容一致 */

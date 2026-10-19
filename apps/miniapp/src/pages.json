@@ -2,7 +2,7 @@
   "pages": [
     { "path": "pages/index/index", "style": { "navigationBarTitleText": "逻辑解剖" } },
     { "path": "pages/course/list", "style": { "navigationBarTitleText": "课程" } },
-    { "path": "pages/learning/index", "style": { "navigationBarTitleText": "学习中心" } },
+    { "path": "pages/learning/index", "style": { "navigationBarTitleText": "学习" } },
     { "path": "pages/mine/index", "style": { "navigationBarTitleText": "我的" } },
     { "path": "pages/course/detail", "style": { "navigationBarTitleText": "课程详情" } },
     { "path": "pages/course/play", "style": { "navigationBarTitleText": "学习" } },
@@ -27,7 +27,7 @@
     "list": [
       { "pagePath": "pages/index/index", "text": "首页", "iconPath": "static/tabbar/home.png", "selectedIconPath": "static/tabbar/home-active.png" },
       { "pagePath": "pages/course/list", "text": "课程", "iconPath": "static/tabbar/course.png", "selectedIconPath": "static/tabbar/course-active.png" },
-      { "pagePath": "pages/join/index", "text": "合作", "iconPath": "static/tabbar/join.png", "selectedIconPath": "static/tabbar/join-active.png" },
+      { "pagePath": "pages/learning/index", "text": "学习", "iconPath": "static/tabbar/learning.png", "selectedIconPath": "static/tabbar/learning-active.png" },
       { "pagePath": "pages/mine/index", "text": "我的", "iconPath": "static/tabbar/mine.png", "selectedIconPath": "static/tabbar/mine-active.png" }
     ]
   }

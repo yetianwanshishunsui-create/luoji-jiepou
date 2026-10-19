@@ -23,6 +23,15 @@
       </view>
     </view>
 
+    <!-- 合作入口：仅从业者身份显示 -->
+    <view v-if="user.profile?.identityType === 'PRACTITIONER'" class="card join" @click="goJoin">
+      <view>
+        <view class="join-title">合作招募</view>
+        <view class="join-sub">品牌协作 · 渠道与区域合伙 · 机构团课</view>
+      </view>
+      <text class="join-go">了解合作 ›</text>
+    </view>
+
     <view v-for="sec in sections" :key="sec.title" class="card">
       <view class="section-title">{{ sec.title }}</view>
       <ProductCard v-for="p in sec.products" :key="p.id" :product="p" />
@@ -63,6 +72,7 @@ async function load() {
 /** 运营位链接：tabBar 页面只能 switchTab */
 const openLink = (link: string) => (isTabPage(link) ? uni.switchTab({ url: link }) : uni.navigateTo({ url: link }));
 const goCoupons = () => uni.navigateTo({ url: '/pages/coupon/center' });
+const goJoin = () => uni.navigateTo({ url: '/pages/join/index' });
 
 onShow(() => load().catch(() => undefined));
 onPullDownRefresh(() => load().finally(() => uni.stopPullDownRefresh()));
@@ -134,6 +144,30 @@ onPullDownRefresh(() => load().finally(() => uni.stopPullDownRefresh()));
 .entry-name {
   font-size: 24rpx;
   color: $text;
+}
+.join {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, $brand-light, #dbe6fb);
+}
+.join-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: $brand-deep;
+  margin-bottom: 6rpx;
+}
+.join-sub {
+  font-size: 24rpx;
+  color: $text-secondary;
+}
+.join-go {
+  flex-shrink: 0;
+  padding: 10rpx 24rpx;
+  border-radius: 999rpx;
+  background: $brand;
+  color: #fff;
+  font-size: 24rpx;
 }
 .section-title {
   font-size: 32rpx;
