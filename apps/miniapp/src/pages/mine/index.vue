@@ -9,26 +9,29 @@
       </view>
     </view>
 
+    <view class="card study" @click="go('/pages/learning/index')">
+      <view>
+        <view class="study-title">学习中心</view>
+        <view class="muted">已购课程、学习进度、继续学习</view>
+      </view>
+      <text class="study-go">进入 ›</text>
+    </view>
     <view class="card menu">
-      <view class="menu-item" @click="go('/pages/cert/index')">
-        <text>身份认证</text>
-        <text class="muted">{{ certText }} ›</text>
+      <view class="menu-item" @click="go('/pages/order/list')">
+        <text>我的订单</text>
+        <text class="muted">›</text>
+      </view>
+      <view class="menu-item" @click="go('/pages/offline/mine')">
+        <text>线下课报名</text>
+        <text class="muted">›</text>
       </view>
       <view class="menu-item" @click="go('/pages/coupon/mine')">
         <text>优惠券</text>
         <text class="muted">›</text>
       </view>
-      <view class="menu-item" @click="go('/pages/offline/mine')">
-        <text>我的报名</text>
-        <text class="muted">›</text>
-      </view>
-      <view class="menu-item" @click="go('/pages/order/list')">
-        <text>我的订单</text>
-        <text class="muted">›</text>
-      </view>
-      <view class="menu-item" @click="go('/pages/join/index')">
-        <text>从业者合作</text>
-        <text class="muted">›</text>
+      <view class="menu-item" @click="go('/pages/cert/index')">
+        <text>身份认证</text>
+        <text class="muted">{{ certText }} ›</text>
       </view>
     </view>
     <view v-if="DEMO" class="card demo">
@@ -108,6 +111,24 @@ onShow(async () => {
 }
 .menu {
   padding: 0 28rpx;
+}
+.study {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, $brand 0%, $brand-deep 100%);
+  color: #fff;
+  .muted {
+    color: rgba(255, 255, 255, 0.82);
+  }
+}
+.study-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  margin-bottom: 6rpx;
+}
+.study-go {
+  font-size: 26rpx;
 }
 .menu-item {
   display: flex;

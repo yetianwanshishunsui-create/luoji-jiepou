@@ -1,17 +1,26 @@
 <template>
   <CertGate>
-    <swiper v-if="banners.length" class="banner" circular autoplay indicator-dots>
+    <view class="brand">
+      <view class="brand-name">逻辑解剖</view>
+      <view class="brand-slogan">以解剖立学，以注射立教</view>
+    </view>
+
+    <swiper v-if="banners.length" class="banner" circular autoplay indicator-dots indicator-active-color="#ffffff">
       <swiper-item v-for="b in banners" :key="b.id" @click="b.link && openLink(b.link)">
         <image :src="b.image" :aria-label="b.title" mode="aspectFill" class="banner-img" />
       </swiper-item>
     </swiper>
 
-    <view class="card entry" @click="goCoupons">
-      <view>
-        <view class="section-title">领券中心</view>
-        <view class="muted">领取优惠券，购课更划算</view>
+    <!-- 课程分类入口：取后台一级分类，加领券中心 -->
+    <view class="card entries">
+      <view v-for="(c, i) in categories" :key="c.id" class="entry" @click="openCourseCategory(c.id)">
+        <view :class="['entry-icon', `tone${i % 4}`]">{{ c.name.slice(0, 2) }}</view>
+        <text class="entry-name">{{ c.name }}</text>
       </view>
-      <text class="arrow">›</text>
+      <view class="entry" @click="goCoupons">
+        <view class="entry-icon tone3">领券</view>
+        <text class="entry-name">领券中心</text>
+      </view>
     </view>
 
     <view v-for="sec in sections" :key="sec.title" class="card">
@@ -19,14 +28,6 @@
       <ProductCard v-for="p in sec.products" :key="p.id" :product="p" />
     </view>
     <view v-if="loaded && !sections.length" class="card muted empty">暂无课程</view>
-
-    <view class="card join" @click="goJoin">
-      <view>
-        <view class="section-title">从业者合作</view>
-        <view class="muted">了解合作政策，留下联系方式</view>
-      </view>
-      <text class="arrow">›</text>
-    </view>
   </CertGate>
 </template>
 
@@ -34,14 +35,16 @@
 import { isTabPage } from '@luoji/shared';
 import { onPullDownRefresh, onShow } from '@dcloudio/uni-app';
 import { ref } from 'vue';
-import { api, type ProductCard as Card } from '@/api';
+import { api, type Category, type ProductCard as Card } from '@/api';
 import CertGate from '@/components/CertGate.vue';
 import ProductCard from '@/components/ProductCard.vue';
 import { useUserStore } from '@/stores/user';
+import { openCourseCategory } from '@/utils/nav';
 
 const user = useUserStore();
 const banners = ref<{ id: string; title: string; image: string; link: string | null }[]>([]);
 const sections = ref<{ title: string; products: Card[] }[]>([]);
+const categories = ref<Category[]>([]);
 const loaded = ref(false);
 
 async function load() {
@@ -50,15 +53,15 @@ async function load() {
     await user.refreshProfile(); // 审核通过后返回首页即可刷新状态
     if (!user.certified) return;
   }
-  const res = await api.home();
+  const [res, cats] = await Promise.all([api.home(), api.categories()]);
   banners.value = res.banners;
   sections.value = res.sections;
+  categories.value = cats.slice(0, 3);
   loaded.value = true;
 }
 
 /** 运营位链接：tabBar 页面只能 switchTab */
 const openLink = (link: string) => (isTabPage(link) ? uni.switchTab({ url: link }) : uni.navigateTo({ url: link }));
-const goJoin = () => uni.navigateTo({ url: '/pages/join/index' });
 const goCoupons = () => uni.navigateTo({ url: '/pages/coupon/center' });
 
 onShow(() => load().catch(() => undefined));
@@ -66,15 +69,71 @@ onPullDownRefresh(() => load().finally(() => uni.stopPullDownRefresh()));
 </script>
 
 <style lang="scss" scoped>
+.brand {
+  padding: 28rpx 32rpx 4rpx;
+  display: flex;
+  align-items: baseline;
+  gap: 20rpx;
+}
+.brand-name {
+  font-size: 40rpx;
+  font-weight: 800;
+  font-style: italic;
+  color: $brand;
+  letter-spacing: 2rpx;
+}
+.brand-slogan {
+  font-size: 24rpx;
+  color: $text-secondary;
+}
 .banner {
   height: 300rpx;
-  margin: 24rpx;
+  margin: 20rpx 24rpx;
   border-radius: $radius;
   overflow: hidden;
 }
 .banner-img {
   width: 100%;
   height: 100%;
+}
+.entries {
+  display: flex;
+  justify-content: space-around;
+  padding: 28rpx 12rpx;
+}
+.entry {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+  width: 25%;
+}
+.entry-icon {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #fff;
+  &.tone0 {
+    background: linear-gradient(135deg, $brand, $brand-deep);
+  }
+  &.tone1 {
+    background: linear-gradient(135deg, #2f6be0, #1f4fbf);
+  }
+  &.tone2 {
+    background: linear-gradient(135deg, #b45309, #8f3f08);
+  }
+  &.tone3 {
+    background: linear-gradient(135deg, #d4380d, #a8290a);
+  }
+}
+.entry-name {
+  font-size: 24rpx;
+  color: $text;
 }
 .section-title {
   font-size: 32rpx;
@@ -84,15 +143,5 @@ onPullDownRefresh(() => load().finally(() => uni.stopPullDownRefresh()));
 .empty {
   padding: 40rpx 0;
   text-align: center;
-}
-.join,
-.entry {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.arrow {
-  font-size: 48rpx;
-  color: $text-secondary;
 }
 </style>

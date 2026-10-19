@@ -267,7 +267,7 @@ onMounted(async () => {
   padding: 20px 16px;
   border-radius: 8px;
   color: #fff;
-  background: linear-gradient(135deg, #1f6f3f, #3a9a5f) center / cover;
+  background: linear-gradient(135deg, #2a5bd7, #1b3f9e) center / cover;
 }
 .hero-title {
   font-size: 20px;
@@ -296,7 +296,7 @@ onMounted(async () => {
 .benefit {
   padding: 10px;
   border-radius: 6px;
-  background: #eaf4ec;
+  background: #ebf1fd;
 }
 .benefit-title {
   font-weight: 500;
@@ -331,7 +331,7 @@ onMounted(async () => {
 .fake-btn {
   padding: 10px;
   border-radius: 999px;
-  background: #1f6f3f;
+  background: #2a5bd7;
   color: #fff;
   text-align: center;
 }

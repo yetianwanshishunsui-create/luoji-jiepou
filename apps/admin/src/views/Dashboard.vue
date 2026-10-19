@@ -42,6 +42,6 @@ onMounted(async () => {
   margin-top: 8px;
   font-size: 28px;
   font-weight: 600;
-  color: #1f6f3f;
+  color: #2a5bd7;
 }
 </style>

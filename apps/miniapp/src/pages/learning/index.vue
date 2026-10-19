@@ -7,7 +7,7 @@
         <view class="info">
           <view class="title">{{ c.title }}</view>
           <view class="muted">已学 {{ c.completedCount }}/{{ c.lessonCount }} 节</view>
-          <progress :percent="c.progress" stroke-width="4" activeColor="#1F6F3F" class="bar" />
+          <progress :percent="c.progress" stroke-width="4" activeColor="#2A5BD7" class="bar" />
         </view>
       </view>
       <view v-if="loaded && !courses.length" class="muted empty">还没有课程，去课程页看看吧</view>

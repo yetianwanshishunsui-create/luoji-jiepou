@@ -91,7 +91,7 @@ function onCommand(cmd: string) {
   padding-left: 20px;
   font-size: 18px;
   font-weight: 600;
-  color: #1f6f3f;
+  color: #2a5bd7;
 }
 .el-menu {
   border-right: none;

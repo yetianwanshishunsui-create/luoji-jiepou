@@ -18,8 +18,8 @@ export const LINKABLE_PAGES = [
   { path: '/pages/course/detail', label: '课程详情', param: 'id' },
   { path: '/pages/course/list', label: '课程列表', tab: true },
   { path: '/pages/coupon/center', label: '领券中心' },
-  { path: '/pages/join/index', label: '从业者合作' },
-  { path: '/pages/learning/index', label: '学习中心', tab: true },
+  { path: '/pages/join/index', label: '合作', tab: true },
+  { path: '/pages/learning/index', label: '学习中心' },
   { path: '/pages/mine/index', label: '我的', tab: true },
 ] as const;
 

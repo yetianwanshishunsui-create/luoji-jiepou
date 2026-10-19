@@ -22,28 +22,30 @@ async function main() {
 
   if (process.env.NODE_ENV === 'production') return;
 
-  const root = await prisma.category.upsert({
-    where: { id: 'demo-cat-root' },
-    create: { id: 'demo-cat-root', name: '产品系列', visibleTo: BOTH },
-    update: {},
-  });
-  await prisma.category.upsert({
-    where: { id: 'demo-cat-replay' },
-    create: { id: 'demo-cat-replay', parentId: root.id, name: '专题回放', visibleTo: BOTH },
-    update: {},
-  });
+  // 课程体系（与品牌资料一致）：一级三大板块，二级为主题 / 系列 / 专区
+  const tree: [string, string, [string, string][]][] = [
+    ['cat-offline', '线下精品课', [['cat-off-core', '核心框架课'], ['cat-off-clinic', '临床转化课'], ['cat-off-risk', '风险应急课'], ['cat-off-vessel', '血管安全专项']]],
+    ['cat-online', '线上精品课', [['cat-on-collagen', '胶原蛋白专区'], ['cat-on-ha', '玻尿酸专区'], ['cat-on-smas', '肉毒素 · SMAS'], ['cat-on-face', '面部精细解剖'], ['cat-on-live', '专题直播回放']]],
+    ['cat-free', '公益讲堂', [['cat-free-60', '每日 60 秒'], ['cat-free-yxy', '云学苑']]],
+  ];
+  for (const [i, [id, name, children]] of tree.entries()) {
+    await prisma.category.upsert({ where: { id }, create: { id, name, sort: i, visibleTo: BOTH }, update: {} });
+    for (const [j, [cid, cname]] of children.entries()) {
+      await prisma.category.upsert({ where: { id: cid }, create: { id: cid, parentId: id, name: cname, sort: j, visibleTo: BOTH }, update: {} });
+    }
+  }
   await prisma.product.upsert({
     where: { id: 'demo-course-1' },
     create: {
       id: 'demo-course-1',
       type: 'COURSE',
-      title: '逻辑解剖入门（演示）',
+      title: '鼻部栓塞危机处理全解析（演示）',
       subtitle: '演示数据，可在后台删除',
       pricingMode: 'PAID',
       priceCent: 19900,
       visibleTo: BOTH,
       status: 'ONLINE',
-      categoryId: 'demo-cat-replay',
+      categoryId: 'cat-on-live',
       chapters: {
         create: {
           title: '第一章',

@@ -172,8 +172,8 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #eaf4ec;
-  color: #1f6f3f;
+  background: #ebf1fd;
+  color: #2a5bd7;
   font-size: 12px;
 }
 .muted {

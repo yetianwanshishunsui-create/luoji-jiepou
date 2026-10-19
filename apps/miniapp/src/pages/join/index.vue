@@ -56,7 +56,7 @@
 
       <checkbox-group @change="onAgree">
         <label class="agree">
-          <checkbox value="agree" :checked="agreed" color="#1F6F3F" />
+          <checkbox value="agree" :checked="agreed" color="#2A5BD7" />
           <text class="muted">我已阅读并同意《个人信息保护说明》</text>
         </label>
       </checkbox-group>
@@ -104,7 +104,7 @@ onLoad(async () => {
 
 <style lang="scss" scoped>
 .hero {
-  background: linear-gradient(135deg, $brand, #3a9a5f) center / cover;
+  background: linear-gradient(135deg, $brand, $brand-deep) center / cover;
   color: #fff;
   padding: 48rpx 32rpx;
 }

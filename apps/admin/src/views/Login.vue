@@ -53,7 +53,7 @@ async function submit() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #eaf4ec, #f7faf8);
+  background: linear-gradient(135deg, #ebf1fd, #f7f9fd);
 }
 .card {
   width: 360px;
@@ -62,7 +62,7 @@ async function submit() {
 h2 {
   margin: 0 0 24px;
   font-weight: 600;
-  color: #1f6f3f;
+  color: #2a5bd7;
   text-align: center;
 }
 .btn {
