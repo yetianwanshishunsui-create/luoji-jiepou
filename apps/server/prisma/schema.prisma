@@ -106,6 +106,13 @@ enum EntitlementSource {
   GIFT // 二期：赠课 / 兑换码
 }
 
+/// 课程评价状态：内容安全检测通过直接展示；检测建议人工复核的进入待审核；后台可隐藏
+enum ReviewStatus {
+  PENDING
+  VISIBLE
+  HIDDEN
+}
+
 enum LeadStatus {
   NEW
   CONTACTED
@@ -143,6 +150,7 @@ model User {
   progresses     LearningProgress[]
   userCoupons    UserCoupon[]
   enrollments    Enrollment[]
+  reviews        ProductReview[]
 
   @@index([certStatus])
   @@map("users")
@@ -224,6 +232,7 @@ model Product {
   /// 专栏 / 系列包含的子产品
   children     ProductItem[]    @relation("ParentProduct")
   parents      ProductItem[]    @relation("ChildProduct")
+  reviews      ProductReview[]
 
   @@index([status, type, sort])
   @@index([categoryId])
@@ -509,6 +518,35 @@ model LearningProgress {
   @@unique([userId, lessonId])
   @@index([userId, updatedAt])
   @@map("learning_progress")
+}
+
+// ───────────────────────────── 评价 ─────────────────────────────
+
+/// 课程评价：购买过（含线下课已付定金 / 已报名完成）的学员每门课一条，可修改
+model ProductReview {
+  id        String       @id @default(cuid())
+  productId String       @map("product_id")
+  userId    String       @map("user_id")
+  /// 1~5 星
+  rating    Int
+  content   String       @db.VarChar(500)
+  anonymous Boolean      @default(false)
+  status    ReviewStatus @default(PENDING)
+  /// 精选：排在详情页评价区最前
+  featured  Boolean      @default(false)
+  /// 官方回复
+  reply     String?      @db.VarChar(500)
+  repliedAt DateTime?    @map("replied_at")
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @default(now()) @updatedAt @map("updated_at")
+
+  product Product @relation(fields: [productId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@unique([productId, userId])
+  @@index([productId, status, featured, createdAt])
+  @@index([status, createdAt])
+  @@map("product_reviews")
 }
 
 // ───────────────────────────── 招商 ─────────────────────────────

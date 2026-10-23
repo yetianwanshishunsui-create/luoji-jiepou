@@ -4,7 +4,7 @@
  */
 import { ErrorCode } from '@luoji/shared';
 import type { CertStatus, EnrollmentStatus, IdentityType, UserProfile } from '@luoji/shared';
-import { BANNERS, CATEGORIES, COUPONS, HOME_SECTIONS, JOIN_PAGE, PRODUCTS, type DemoProduct } from './data';
+import { BANNERS, CATEGORIES, COUPONS, HOME_SECTIONS, JOIN_PAGE, PRODUCTS, REVIEWS, type DemoProduct } from './data';
 
 const KEY = 'luoji_demo_state';
 const PAY_TIMEOUT = 30 * 60_000;
@@ -46,6 +46,16 @@ interface Enrollment {
   balanceOrderNo: string | null;
 }
 
+interface MyReview {
+  id: string;
+  productId: string;
+  rating: number;
+  content: string;
+  anonymous: boolean;
+  status: 'PENDING' | 'VISIBLE' | 'HIDDEN';
+  createdAt: number;
+}
+
 interface State {
   /** 演示开始时间：早鸟价、场次时间都相对它计算 */
   t0: number;
@@ -57,6 +67,8 @@ interface State {
   coupons: UserCoupon[];
   enrollments: Enrollment[];
   leads: number;
+  /** 本人写的评价，每门课一条 */
+  reviews: MyReview[];
 }
 
 function fresh(): State {
@@ -70,6 +82,7 @@ function fresh(): State {
     coupons: [],
     enrollments: [],
     leads: 0,
+    reviews: [],
   };
 }
 
@@ -79,6 +92,7 @@ function load(): State {
   if (state) return state;
   const saved = uni.getStorageSync(KEY) as State | '';
   state = saved && saved.t0 ? saved : fresh();
+  state.reviews ??= [];
   return state;
 }
 
@@ -194,6 +208,21 @@ function owns(s: State, p: DemoProduct) {
   if (p.pricingMode === 'FREE' && p.type !== 'OFFLINE') return true;
   if (s.owned.includes(p.id)) return true;
   return PRODUCTS.some((bundle) => bundle.items?.includes(p.id) && s.owned.includes(bundle.id));
+}
+
+// ───────── 评价 ─────────
+
+const DAY_MS = 86_400_000;
+
+/** 购买过（含专栏 / 系列）或线下课已付定金、已结业才能评价；免费课不开放评价 */
+function canReview(s: State, p: DemoProduct) {
+  if (p.pricingMode === 'FREE') return false;
+  if (p.type === 'OFFLINE') return s.enrollments.some((e) => e.productId === p.id && ['DEPOSIT_PAID', 'COMPLETED'].includes(e.status));
+  return owns(s, p);
+}
+
+function myView(s: State, r: MyReview) {
+  return { id: r.id, name: r.anonymous ? '匿名用户' : `${s.user.nickname.slice(0, 1)}**`, avatar: null, rating: r.rating, content: r.content };
 }
 
 function findLesson(lessonId: string) {
@@ -368,6 +397,63 @@ const routes: [string, RegExp, Handler][] = [
         chapters: p.chapters.map((ch) => ({ id: ch.id, title: ch.title, lessons: ch.lessons.map(({ contentHtml: _c, ...l }) => l) })),
         items: (p.items ?? []).map(findProduct).map((x) => ({ id: x.id, title: x.title, cover: x.cover, type: x.type })),
       };
+    },
+  ],
+
+  [
+    'GET',
+    /^\/api\/v1\/products\/([\w-]+)\/reviews$/,
+    (s, d, [id]) => {
+      requireCert(s);
+      const p = findProduct(id);
+      const page = Math.max(1, Number(d.page) || 1);
+      const pageSize = Math.min(50, Math.max(1, Number(d.pageSize) || 20));
+      const mine = s.reviews.find((r) => r.productId === id) ?? null;
+      const seeded = REVIEWS.filter((r) => r.productId === id).map((r) => ({
+        id: r.id,
+        name: r.name,
+        avatar: null,
+        rating: r.rating,
+        content: r.content,
+        featured: !!r.featured,
+        reply: r.reply ?? null,
+        at: s.t0 - r.daysAgo * DAY_MS,
+      }));
+      const all = [...(mine?.status === 'VISIBLE' ? [{ ...myView(s, mine), featured: false, reply: null, at: mine.createdAt }] : []), ...seeded].sort(
+        (a, b) => Number(b.featured) - Number(a.featured) || b.at - a.at,
+      );
+      const ratings = all.map((r) => r.rating);
+      return {
+        count: all.length,
+        avgRating: ratings.length ? Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 10) / 10 : null,
+        list: all.slice((page - 1) * pageSize, page * pageSize).map(({ at, ...r }) => ({ ...r, createdAt: iso(at) })),
+        page,
+        pageSize,
+        canReview: canReview(s, p),
+        mine: mine ? { ...myView(s, mine), featured: false, reply: null, createdAt: iso(mine.createdAt), status: mine.status, anonymous: mine.anonymous } : null,
+      };
+    },
+  ],
+  [
+    'POST',
+    /^\/api\/v1\/products\/([\w-]+)\/reviews$/,
+    (s, d, [id]) => {
+      requireCert(s);
+      const p = findProduct(id);
+      const rating = Number(d.rating);
+      const content = String(d.content ?? '').trim();
+      if (!Number.isInteger(rating) || rating < 1 || rating > 5) fail(ErrorCode.BAD_REQUEST, '请选择 1~5 星评分');
+      if (content.length < 5) fail(ErrorCode.BAD_REQUEST, '评价至少写 5 个字');
+      if (content.length > 500) fail(ErrorCode.BAD_REQUEST, '评价最多 500 字');
+      if (!canReview(s, p)) fail(ErrorCode.FORBIDDEN, '购买后才能评价该课程', 403);
+      // 演示版用关键词模拟微信内容安全检测：疑似留联系方式的评价进入人工审核
+      const status = /微信|vx|加我|电话|qq|\d{7,}/i.test(content) ? 'PENDING' : 'VISIBLE';
+      let r = s.reviews.find((x) => x.productId === id);
+      if (!r) {
+        r = { id: nextId(s, 'rv'), productId: id, rating, content, anonymous: !!d.anonymous, status, createdAt: Date.now() };
+        s.reviews.push(r);
+      } else Object.assign(r, { rating, content, anonymous: !!d.anonymous, status, createdAt: Date.now() });
+      return { id: r.id, status };
     },
   ],
 

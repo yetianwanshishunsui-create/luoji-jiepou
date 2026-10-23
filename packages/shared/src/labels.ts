@@ -8,6 +8,7 @@ import type {
   OrderStatus,
   ProductType,
   RefundStatus,
+  ReviewStatus,
 } from './enums';
 
 export const IdentityTypeLabel: Record<IdentityType, string> = {
@@ -56,6 +57,12 @@ export const EnrollmentStatusLabel: Record<EnrollmentStatus, string> = {
   DEPOSIT_PAID: '待付尾款',
   COMPLETED: '已完成',
   CANCELLED: '已取消',
+};
+
+export const ReviewStatusLabel: Record<ReviewStatus, string> = {
+  PENDING: '待审核',
+  VISIBLE: '已展示',
+  HIDDEN: '已隐藏',
 };
 
 export const LeadStatusLabel: Record<LeadStatus, string> = {

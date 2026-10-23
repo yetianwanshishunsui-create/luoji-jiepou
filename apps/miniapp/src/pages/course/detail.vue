@@ -22,6 +22,9 @@
       </view>
     </view>
 
+    <!-- 学员评价：免费课程不开放评价 -->
+    <ReviewSection v-if="product.pricingMode !== 'FREE'" :product-id="product.id" :refresh-key="showCount" />
+
     <view v-if="product.items.length" class="card">
       <view class="section-title">包含课程</view>
       <view v-for="it in product.items" :key="it.id" class="row" @click="openProduct(it.id)">{{ it.title }}</view>
@@ -106,6 +109,7 @@ import { onLoad, onShow } from '@dcloudio/uni-app';
 import { computed, ref } from 'vue';
 import { api, type CheckoutPreview, type LessonBrief, type ProductDetail } from '@/api';
 import OfflineSessions from '@/components/OfflineSessions.vue';
+import ReviewSection from '@/components/ReviewSection.vue';
 import { useCountdown } from '@/utils/countdown';
 import { payOrder } from '@/utils/pay';
 import { couponCondition, duration, money, yuan } from '@/utils/format';

@@ -18,6 +18,7 @@ import { CertModule } from './modules/cert/cert.module';
 import { HealthModule } from './modules/health/health.module';
 import { LeadModule } from './modules/lead/lead.module';
 import { LearningModule } from './modules/learning/learning.module';
+import { ReviewModule } from './modules/review/review.module';
 import { MarketingModule } from './modules/marketing/marketing.module';
 import { OfflineModule } from './modules/offline/offline.module';
 import { OrderModule } from './modules/order/order.module';
@@ -53,6 +54,7 @@ function flattenValidationErrors(errors: ValidationError[], out: string[] = []):
     CertModule,
     CatalogModule,
     LearningModule,
+    ReviewModule,
     OrderModule,
     MarketingModule,
     OfflineModule,

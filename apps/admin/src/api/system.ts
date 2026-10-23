@@ -62,6 +62,7 @@ export const AuditActionLabel: Record<string, string> = {
   CERT_APPROVE: '认证通过',
   CERT_REJECT: '认证驳回',
   LEAD_UPDATE: '跟进线索',
+  REVIEW_UPDATE: '处理课程评价',
   CATEGORY_CREATE: '新建分类',
   CATEGORY_UPDATE: '编辑分类',
   CATEGORY_DELETE: '删除分类',

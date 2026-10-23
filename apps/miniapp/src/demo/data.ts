@@ -474,6 +474,51 @@ export const COUPONS = [
   { id: 'cp-gone', name: '周年庆大额券', description: '已抢光示例', type: 'FULL_REDUCTION' as const, thresholdCent: 498000, discountCent: 50000, scope: 'ALL' as const, perUser: 1, categoryIds: [], productIds: [], soldOut: true },
 ];
 
+/** 演示评价（第一条节选自学员在小鹅通的真实评价，其余均为演示占位）；daysAgo 相对演示开始时间 */
+export interface DemoReview {
+  id: string;
+  productId: string;
+  name: string;
+  rating: number;
+  content: string;
+  featured?: boolean;
+  reply?: string;
+  daysAgo: number;
+}
+
+const REPLY = '感谢认可！后续直播回放会持续加入合集，有问题欢迎在学习群里交流。（演示回复）';
+export const REVIEWS: DemoReview[] = [
+  {
+    id: 'rv-live-1',
+    productId: 's-live',
+    name: '匿名用户',
+    rating: 5,
+    content: '以前解剖学得头晕脑涨，背会了没学会，实操一样懵逼。对于面部解剖，吴老师从层次上进行剖析……（节选自学员在小鹅通的评价）',
+    featured: true,
+    reply: REPLY,
+    daysAgo: 12,
+  },
+  { id: 'rv-live-2', productId: 's-live', name: '李**', rating: 5, content: '回放可以反复看，血管那一期看了三遍，注射前心里有底多了。（演示评价）', daysAgo: 6 },
+  { id: 'rv-live-3', productId: 's-live', name: '陈**', rating: 4, content: '内容很扎实，希望每期能附上课件要点。（演示评价）', daysAgo: 3 },
+  { id: 'rv-live-4', productId: 's-live', name: '匿名用户', rating: 5, content: '讲解层次分明，不再死记硬背。（演示评价）', daysAgo: 1 },
+  {
+    id: 'rv-smas-1',
+    productId: 'p-smas',
+    name: '王**',
+    rating: 5,
+    content: '把 SMAS 和肌肉体系讲成了一张图，泛眼周、泛口周两讲对除皱和提升的设计帮助很大。（演示评价）',
+    featured: true,
+    reply: '谢谢王医生！第五讲并发症部分建议结合案例多看几遍。（演示回复）',
+    daysAgo: 9,
+  },
+  { id: 'rv-smas-2', productId: 'p-smas', name: '赵**', rating: 4, content: '课程节奏适中，咀嚼肌那一讲还想听更多案例。（演示评价）', daysAgo: 4 },
+  { id: 'rv-face-1', productId: 'p-face', name: '刘**', rating: 5, content: '精细解剖讲得非常细，配合试看版先了解再购买，很值。（演示评价）', daysAgo: 7 },
+  { id: 'rv-col-1', productId: 's-collagen', name: '匿名用户', rating: 5, content: '胶原蛋白的注射层次终于搞明白了，产品选择思路也很清晰。（演示评价）', featured: true, daysAgo: 8 },
+  { id: 'rv-col-2', productId: 's-collagen', name: '周**', rating: 4, content: '系列课内容丰富，建议增加术后管理的内容。（演示评价）', daysAgo: 2 },
+  { id: 'rv-res-1', productId: 'o-rescue', name: '孙**', rating: 5, content: '线下实操 + 应急演练，比只看视频收获大太多，老师现场答疑很耐心。（演示评价）', featured: true, daysAgo: 15 },
+  { id: 'rv-dis-1', productId: 'o-dissect', name: '吴**', rating: 5, content: '第一次在标本上看清楚面部层次，回去再看书完全不一样。（演示评价）', daysAgo: 20 },
+];
+
 export const JOIN_PAGE: JoinPageConfig = {
   hero: {
     title: '品牌协作 · 产品共研 · 教研共建',

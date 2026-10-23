@@ -122,6 +122,28 @@ export interface MyCourse {
   lastLessonId: string | null;
 }
 
+export interface ReviewView {
+  id: string;
+  name: string;
+  avatar: string | null;
+  rating: number;
+  content: string;
+  featured: boolean;
+  reply: string | null;
+  createdAt: string;
+}
+
+export interface ReviewPage {
+  count: number;
+  avgRating: number | null;
+  list: ReviewView[];
+  page: number;
+  pageSize: number;
+  /** 购买过才能评价 */
+  canReview: boolean;
+  mine: (ReviewView & { status: 'PENDING' | 'VISIBLE' | 'HIDDEN'; anonymous: boolean }) | null;
+}
+
 export interface Category {
   id: string;
   name: string;
@@ -152,6 +174,11 @@ export const api = {
   products: (params: { page: number; pageSize: number; categoryId?: string }) =>
     request<PageResult<ProductCard>>({ url: '/api/v1/products', data: params }),
   product: (id: string) => request<ProductDetail>({ url: `/api/v1/products/${id}` }),
+
+  reviews: (productId: string, params: { page: number; pageSize: number }) =>
+    request<ReviewPage>({ url: `/api/v1/products/${productId}/reviews`, data: params }),
+  submitReview: (productId: string, data: { rating: number; content: string; anonymous: boolean }) =>
+    request<{ id: string; status: 'PENDING' | 'VISIBLE' | 'HIDDEN' }>({ url: `/api/v1/products/${productId}/reviews`, method: 'POST', data }),
 
   playSign: (lessonId: string) => request<PlaySign>({ url: `/api/v1/lessons/${lessonId}/play-sign` }),
   reportProgress: (data: { lessonId: string; position: number; duration: number }) =>

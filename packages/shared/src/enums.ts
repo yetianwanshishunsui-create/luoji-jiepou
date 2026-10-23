@@ -80,6 +80,14 @@ export const EnrollmentStatus = {
 } as const;
 export type EnrollmentStatus = (typeof EnrollmentStatus)[keyof typeof EnrollmentStatus];
 
+/** 课程评价状态 */
+export const ReviewStatus = {
+  PENDING: 'PENDING',
+  VISIBLE: 'VISIBLE',
+  HIDDEN: 'HIDDEN',
+} as const;
+export type ReviewStatus = (typeof ReviewStatus)[keyof typeof ReviewStatus];
+
 /** 招商线索状态 */
 export const LeadStatus = {
   NEW: 'NEW',

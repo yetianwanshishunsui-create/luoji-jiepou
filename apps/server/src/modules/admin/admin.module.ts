@@ -1,3 +1,4 @@
+import { AdminReviewController } from './admin-review.controller';
 import { Module } from '@nestjs/common';
 import { CertModule } from '../cert/cert.module';
 import { OrderModule } from '../order/order.module';
@@ -29,6 +30,7 @@ import { AdminProductService } from './content/product.service';
     AdminCertController,
     AdminDashboardController,
     AdminLeadController,
+    AdminReviewController,
     AdminUserController,
     AdminCategoryController,
     AdminProductController,

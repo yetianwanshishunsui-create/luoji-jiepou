@@ -39,6 +39,7 @@ export const menuRoutes: RouteRecordRaw[] = [
       },
       { path: 'categories', name: 'content-categories', component: () => import('@/views/content/CategoryManage.vue'), meta: { title: '分类' } },
       { path: 'daily-audios', name: 'content-daily-audios', component: () => import('@/views/content/DailyAudioList.vue'), meta: { title: '每日音频' } },
+      { path: 'reviews', name: 'content-reviews', component: () => import('@/views/content/ReviewList.vue'), meta: { title: '课程评价' } },
     ],
   },
   {
@@ -67,10 +68,10 @@ export const menuRoutes: RouteRecordRaw[] = [
     children: [
       { path: 'banners', name: 'site-banners', component: () => import('@/views/site/BannerList.vue'), meta: { title: 'Banner' } },
       { path: 'home', name: 'site-home', component: () => import('@/views/site/HomeSlots.vue'), meta: { title: '首页推荐' } },
-      { path: 'join', name: 'site-join', component: () => import('@/views/site/JoinPageEditor.vue'), meta: { title: '招商页' } },
+      { path: 'join', name: 'site-join', component: () => import('@/views/site/JoinPageEditor.vue'), meta: { title: '合作页' } },
     ],
   },
-  { path: 'leads', name: 'leads', component: () => import('@/views/leads/LeadList.vue'), meta: { title: '招商线索', icon: 'Phone', roles: ['OPERATOR'] } },
+  { path: 'leads', name: 'leads', component: () => import('@/views/leads/LeadList.vue'), meta: { title: '合作线索', icon: 'Phone', roles: ['OPERATOR'] } },
   {
     path: 'system',
     name: 'system',
