@@ -1,6 +1,8 @@
 import { ErrorCode, type ApiResponse } from '@luoji/shared';
 import { API_BASE } from './config';
 import { tokenStorage } from './storage';
+// 静态引入：小程序编译不支持动态 import；正式构建 DEMO 为 false，这段会被摇树去掉
+import { mockRequest } from '@/demo/mock';
 
 export class ApiError extends Error {
   constructor(
@@ -54,7 +56,6 @@ async function tryRefresh(): Promise<boolean> {
 const DEMO = import.meta.env.VITE_DEMO === 'true';
 
 async function demoRaw<T>(opts: Options): Promise<T> {
-  const { mockRequest } = await import('@/demo/mock');
   try {
     return (await mockRequest(opts.method ?? 'GET', opts.url, (opts.data ?? {}) as Record<string, unknown>)) as T;
   } catch (e) {

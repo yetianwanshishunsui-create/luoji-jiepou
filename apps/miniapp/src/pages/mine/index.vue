@@ -25,6 +25,7 @@
 import { CertStatusLabel, IdentityTypeLabel, type IdentityType } from '@luoji/shared';
 import { onShow } from '@dcloudio/uni-app';
 import { computed } from 'vue';
+import { resetDemo, switchIdentity } from '@/demo/mock';
 import { useUserStore } from '@/stores/user';
 
 const user = useUserStore();
@@ -40,7 +41,6 @@ const go = (url: string) => uni.navigateTo({ url });
 const DEMO = import.meta.env.VITE_DEMO === 'true';
 
 async function demoSwitch(identity: IdentityType) {
-  const { switchIdentity } = await import('@/demo/mock');
   switchIdentity(identity);
   await user.refreshProfile();
   uni.showToast({ title: `已切换为${IdentityTypeLabel[identity]}`, icon: 'none' });
@@ -52,7 +52,6 @@ function demoReset() {
     content: '将清空本机的演示数据（订单、优惠券、学习进度），回到未认证的新用户状态',
     success: async ({ confirm }) => {
       if (!confirm) return;
-      const { resetDemo } = await import('@/demo/mock');
       resetDemo();
       user.profile = null;
       uni.reLaunch({ url: '/pages/index/index' });

@@ -1,4 +1,6 @@
 import uni from '@dcloudio/vite-plugin-uni';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { defineConfig, loadEnv } from 'vite';
 
 export default defineConfig(({ mode }) => {
@@ -13,6 +15,16 @@ export default defineConfig(({ mode }) => {
       ...(mode === 'demo'
         ? [{ name: 'demo-title', transformIndexHtml: (html: string) => html.replace('<title>逻辑解剖</title>', '<title>逻辑解剖 · 演示版</title>') }]
         : []),
+      // 非演示构建把演示后端换成空实现，正式包里不带演示数据（在 load 阶段替换，避开 uni 自带的 @ 别名解析）
+      ...(env.VITE_DEMO === 'true'
+        ? []
+        : [
+            {
+              name: 'demo-stub',
+              enforce: 'pre' as const,
+              load: (id: string) => (/[\\/]src[\\/]demo[\\/]mock\.ts$/.test(id) ? readFileSync(fileURLToPath(new URL('./src/demo/stub.ts', import.meta.url)), 'utf8') : null),
+            },
+          ]),
     ],
     // 演示版发布在任意路径下，资源用相对路径
     ...(mode === 'demo' ? { base: './' } : {}),
