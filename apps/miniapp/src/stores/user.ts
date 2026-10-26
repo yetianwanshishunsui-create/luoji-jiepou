@@ -5,6 +5,8 @@ import { setReloginHandler } from '@/utils/request';
 import { tokenStorage } from '@/utils/storage';
 
 function getLoginCode(): Promise<string> {
+  // 演示版：接口在本地模拟，不需要真实的微信登录 code（开发者工具用测试号时 wx.login 也可能不可用）
+  if (import.meta.env.VITE_DEMO === 'true') return Promise.resolve('demo');
   // #ifdef MP-WEIXIN
   return new Promise((resolve, reject) => {
     uni.login({ provider: 'weixin', success: (r) => resolve(r.code), fail: reject });

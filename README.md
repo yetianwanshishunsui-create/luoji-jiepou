@@ -78,6 +78,12 @@ pnpm --filter @luoji/miniapp build:demo   # 产物在 apps/miniapp/dist/build/h5
 
 演示版内置了几条演示评价；购买课程后可以写评价，评价里出现「微信」「加我」、手机号等疑似联系方式时模拟进入待审核。
 
+同一套演示数据也可以编译成微信小程序，导入微信开发者工具查看（AppID 选「测试号」即可，不需要后端）：
+
+```bash
+pnpm --filter @luoji/miniapp build:mp-demo   # 产物在 apps/miniapp/dist/build/mp-weixin，用开发者工具「导入项目」选择该目录
+```
+
 演示版只在 `--mode demo`（`.env.demo` 中 `VITE_DEMO=true`）时生效，正式构建不受影响。「我的 → 演示工具」可切换医生 / 从业者身份或重新开始体验。
 
 ## 后台账号与角色
