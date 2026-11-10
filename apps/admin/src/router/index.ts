@@ -69,6 +69,7 @@ export const menuRoutes: RouteRecordRaw[] = [
       { path: 'banners', name: 'site-banners', component: () => import('@/views/site/BannerList.vue'), meta: { title: 'Banner' } },
       { path: 'home', name: 'site-home', component: () => import('@/views/site/HomeSlots.vue'), meta: { title: '首页推荐' } },
       { path: 'join', name: 'site-join', component: () => import('@/views/site/JoinPageEditor.vue'), meta: { title: '合作页' } },
+      { path: 'brand', name: 'site-brand', component: () => import('@/views/site/BrandEditor.vue'), meta: { title: '关于我们与顾问' } },
     ],
   },
   { path: 'leads', name: 'leads', component: () => import('@/views/leads/LeadList.vue'), meta: { title: '合作线索', icon: 'Phone', roles: ['OPERATOR'] } },

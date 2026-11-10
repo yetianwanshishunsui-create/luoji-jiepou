@@ -3,47 +3,46 @@
  * 课程体系按析芒教育「逻辑解剖」品牌资料梳理：线下精品课（四大主题）、线上精品课（五大系列）、公益讲堂。
  * 课程名称取自品牌资料与现有小鹅通店铺；场次、部分价格、文章与音频正文为演示占位，正式内容由管理后台录入。
  */
-import type { IdentityType, JoinPageConfig, ProductType } from '@luoji/shared';
+import type { AboutPageConfig, BodyPart, ConsultConfig, IdentityType, JoinPageConfig, ProductType } from '@luoji/shared';
 
 const DAY = 86_400_000;
 const HOUR = 3_600_000;
 
 type Theme = 'blue' | 'navy' | 'amber' | 'crimson' | 'teal';
 
-const THEMES: Record<Theme, { bg: [string, string]; title: string; sub: string; mark: string; tag: string }> = {
-  blue: { bg: ['#f3f7ff', '#cfdcf7'], title: '#1b3f9e', sub: '#45577f', mark: '#2a5bd7', tag: '#2a5bd7' },
-  navy: { bg: ['#1b3f9e', '#0f2559'], title: '#ffffff', sub: '#c9d6f5', mark: '#8fb0ff', tag: '#3b6fe0' },
-  amber: { bg: ['#fff8ec', '#f3d9ad'], title: '#5a3304', sub: '#7a5520', mark: '#c26a12', tag: '#b45309' },
-  crimson: { bg: ['#f6f3ff', '#d9d3f5'], title: '#2b1d7a', sub: '#4f4683', mark: '#c0262d', tag: '#c0262d' },
-  teal: { bg: ['#e9f7fb', '#bfe3ee'], title: '#0b4a5c', sub: '#2d6474', mark: '#0e7490', tag: '#0e7490' },
+/** 封面配色：淡雅渐变 + 一个强调色；navy 为深色版，用在少量重点课程上做层次 */
+const THEMES: Record<Theme, { bg: [string, string]; title: string; sub: string; accent: string; line: string }> = {
+  blue: { bg: ['#f4f8ff', '#d7e5ff'], title: '#14306f', sub: '#4a5d86', accent: '#2a5bd7', line: '#8fb2f5' },
+  navy: { bg: ['#1d3c8f', '#0d1f52'], title: '#ffffff', sub: '#bfd0f5', accent: '#9cc0ff', line: '#5c86e6' },
+  amber: { bg: ['#fbf7f0', '#ecdcc2'], title: '#4a3112', sub: '#7a6040', accent: '#b9792b', line: '#d9b98a' },
+  crimson: { bg: ['#f6f4ff', '#dcd6f8'], title: '#2a2170', sub: '#5a5490', accent: '#5b4bd1', line: '#ada3ee' },
+  teal: { bg: ['#f0fafb', '#cbe9ee'], title: '#0d4250', sub: '#3e6a75', accent: '#11869c', line: '#8fcdd8' },
 };
 
-/**
- * 生成品牌风格的占位封面（SVG data URI），版式参考现有课程海报：
- * 左上角「逻辑解剖」字标，大标题靠左，右下角标签。
- */
-function art(lines: string[], sub: string, theme: Theme = 'blue', tag = '', w = 480, h = 320): string {
-  const t = THEMES[theme];
-  const font = 'PingFang SC,Microsoft YaHei,sans-serif';
-  const size = Math.min(h * 0.13, (w * 0.84) / Math.max(...lines.map((l) => l.length)));
-  const top = h * 0.5 - ((lines.length - 1) * size * 1.2) / 2;
-  const titles = lines
-    .map((l, i) => `<text x="${w * 0.08}" y="${top + i * size * 1.2}" font-family="${font}" font-size="${size}" font-weight="800" font-style="italic" fill="${t.title}">${l}</text>`)
-    .join('');
-  const tagEl = tag
-    ? `<rect x="${w - 18 - tag.length * h * 0.055 - 16}" y="${h - 46}" width="${tag.length * h * 0.055 + 16}" height="${h * 0.09}" rx="${h * 0.02}" fill="${t.tag}"/><text x="${w - 18 - 8}" y="${h - 46 + h * 0.065}" text-anchor="end" font-family="${font}" font-size="${h * 0.055}" fill="#fff">${tag}</text>`
-    : '';
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
-<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${t.bg[0]}"/><stop offset="1" stop-color="${t.bg[1]}"/></linearGradient></defs>
-<rect width="${w}" height="${h}" fill="url(#g)"/>
-<circle cx="${w * 0.92}" cy="${h * 0.12}" r="${h * 0.42}" fill="#fff" fill-opacity="0.18"/>
-<path d="M0 ${h * 0.86} Q ${w * 0.45} ${h * 0.7} ${w} ${h * 0.92} L ${w} ${h} L 0 ${h} Z" fill="#fff" fill-opacity="0.16"/>
-<text x="${w * 0.08}" y="${h * 0.17}" font-family="${font}" font-size="${h * 0.07}" font-weight="800" font-style="italic" fill="${t.mark}">逻辑解剖</text>
-${titles}
-<text x="${w * 0.08}" y="${top + (lines.length - 1) * size * 1.2 + h * 0.14}" font-family="${font}" font-size="${h * 0.06}" fill="${t.sub}">${sub}</text>
-${tagEl}
-</svg>`;
-  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+/** 封面描述，scripts/render-demo-assets.mjs 按它渲染成 JPG（小程序真机对 SVG 封面支持不稳定） */
+export interface CoverSpec {
+  key: string;
+  lines: string[];
+  sub: string;
+  tag: string;
+  w: number;
+  h: number;
+  theme: (typeof THEMES)[Theme];
+}
+export const COVER_SPECS: CoverSpec[] = [];
+
+/** 由内容生成稳定的文件名，内容改了文件名随之变化，避免缓存旧图 */
+function hashKey(text: string) {
+  let h = 5381;
+  for (let i = 0; i < text.length; i++) h = ((h << 5) + h + text.charCodeAt(i)) >>> 0;
+  return h.toString(36);
+}
+
+/** 品牌风格的占位封面：左上角字标、衬线大标题、强调细线、副标题、右下角标签 */
+function art(lines: string[], sub: string, theme: Theme = 'blue', tag = '', w = 600, h = 400): string {
+  const key = hashKey(JSON.stringify([lines, sub, theme, tag, w, h]));
+  if (!COVER_SPECS.some((c) => c.key === key)) COVER_SPECS.push({ key, lines, sub, tag, w, h, theme: THEMES[theme] });
+  return `/static/demo/covers/${key}.jpg`;
 }
 
 export interface DemoLesson {
@@ -92,6 +91,8 @@ export interface DemoProduct {
   sessions?: DemoSession[];
   /** 价格为拟定（品牌资料中没有）时标注「虚拟」 */
   pricePrefix?: string;
+  keywords?: string[];
+  bodyParts?: BodyPart[];
 }
 
 const BOTH: IdentityType[] = ['DOCTOR', 'PRACTITIONER'];
@@ -208,6 +209,7 @@ export const PRODUCTS: DemoProduct[] = [
       demoNote,
     chapters: [],
     sessions: [
+      { id: 's-dis-cd', title: '成都场', startIn: 12 * DAY, days: 2, address: '成都市（具体地址报名后通知）', depositCent: 500000, balanceCent: 780000, balanceDueIn: 8 * DAY, quota: 30, taken: 18, pricePrefix: V },
       { id: 's-dis-bj', title: '北京场', startIn: 33 * DAY, days: 2, address: '北京市（具体地址报名后通知）', depositCent: 500000, balanceCent: 780000, balanceDueIn: 26 * DAY, quota: 30, taken: 22 },
       { id: 's-dis-sh', title: '上海场', startIn: 61 * DAY, days: 2, address: '上海市（具体地址报名后通知）', depositCent: 500000, balanceCent: 780000, balanceDueIn: 54 * DAY, quota: 30, taken: 30 },
     ],
@@ -255,6 +257,7 @@ export const PRODUCTS: DemoProduct[] = [
     chapters: [],
     sessions: [
       { id: 's-res-bj', title: '北京专场（早鸟价）', startIn: 21 * DAY, days: 1, address: '北京市（具体地址报名后通知）', depositCent: 468000, balanceCent: 0, balanceDueIn: 14 * DAY, quota: 200, taken: 163 },
+      { id: 's-res-sh', title: '上海专场', startIn: 6 * DAY, days: 1, address: '上海市（具体地址报名后通知）', depositCent: 498000, balanceCent: 0, balanceDueIn: 5 * DAY, quota: 120, taken: 97, pricePrefix: V },
       { id: 's-res-hz', title: '杭州专场', startIn: 52 * DAY, days: 1, address: '杭州市（具体地址报名后通知）', depositCent: 498000, balanceCent: 0, balanceDueIn: 45 * DAY, quota: 150, taken: 41, pricePrefix: V },
     ],
   },
@@ -275,6 +278,7 @@ export const PRODUCTS: DemoProduct[] = [
       demoNote,
     chapters: [],
     sessions: [
+      { id: 's-ves-bj', title: '北京场', startIn: 2 * DAY, days: 1, address: '北京市（具体地址报名后通知）', depositCent: 468000, balanceCent: 0, balanceDueIn: 1 * DAY, quota: 80, taken: 71, pricePrefix: V },
       { id: 's-ves-sz', title: '深圳场', startIn: 28 * DAY, days: 1, address: '深圳市（具体地址报名后通知）', depositCent: 468000, balanceCent: 0, balanceDueIn: 21 * DAY, quota: 80, taken: 52, pricePrefix: V },
     ],
   },
@@ -446,11 +450,43 @@ export const PRODUCTS: DemoProduct[] = [
   },
 ];
 
+/** 关键词与适用部位（后台课程编辑里填写）；部位用于首页「按部位找课」 */
+const META: Record<string, { keywords: string[]; bodyParts: BodyPart[] }> = {
+  'o-dissect': { keywords: ['标本实操', '面颈部层次', '闭门研习会'], bodyParts: ['FULLFACE', 'NECK'] },
+  'o-inject': { keywords: ['注射解剖对照', '临床转化'], bodyParts: ['FULLFACE'] },
+  'o-rescue': { keywords: ['并发症', '血管栓塞', '应急处理'], bodyParts: ['FULLFACE', 'NOSE'] },
+  'o-vessel': { keywords: ['血管走行', '安全注射'], bodyParts: ['FOREHEAD', 'NOSE', 'MIDFACE'] },
+  's-collagen': { keywords: ['胶原蛋白', '循证解剖', '联合应用'], bodyParts: ['EYE', 'MIDFACE', 'NECK'] },
+  's-ha': { keywords: ['玻尿酸', '容量重塑', '韧带支撑'], bodyParts: ['MIDFACE', 'LIP', 'NOSE'] },
+  'p-smas': { keywords: ['SMAS', '肉毒素', '并发症规避'], bodyParts: ['EYE', 'LIP', 'JAW'] },
+  'p-face': { keywords: ['精细解剖', '第一视角'], bodyParts: ['FULLFACE'] },
+  's-live': { keywords: ['直播回放', '热门话题'], bodyParts: ['FULLFACE'] },
+  'r-free-nose': { keywords: ['鼻部', '栓塞', '危机处理'], bodyParts: ['NOSE'] },
+  'r-col-1': { keywords: ['胶原', '面部层次'], bodyParts: ['FULLFACE'] },
+  'r-col-2': { keywords: ['胶原', '眶周'], bodyParts: ['EYE'] },
+  'r-col-3': { keywords: ['联合治疗'], bodyParts: ['FULLFACE'] },
+  'r-col-4': { keywords: ['胶原', '年轻化'], bodyParts: ['MIDFACE'] },
+  'r-ha-1': { keywords: ['玻尿酸', '并发症'], bodyParts: ['FULLFACE'] },
+  'r-ha-2': { keywords: ['鼻唇沟', '唇部'], bodyParts: ['LIP'] },
+  'r-ha-3': { keywords: ['中面部', '韧带'], bodyParts: ['MIDFACE'] },
+  'r-ha-4': { keywords: ['玻尿酸', '面部层次'], bodyParts: ['FULLFACE'] },
+  'r-v1': { keywords: ['血管', '眉间', '口周'], bodyParts: ['FOREHEAD', 'LIP'] },
+  'r-v2': { keywords: ['血管', '面颊', '颞区'], bodyParts: ['MIDFACE', 'FOREHEAD'] },
+  'r-v3': { keywords: ['血管', '鼻部'], bodyParts: ['NOSE'] },
+  'r-m1': { keywords: ['泛口周', '注射手感'], bodyParts: ['LIP', 'JAW'] },
+  'r-e1': { keywords: ['眉间', '血管'], bodyParts: ['FOREHEAD', 'EYE'] },
+  'r-e2': { keywords: ['眉部', '无痛注射'], bodyParts: ['EYE'] },
+  'r-e3': { keywords: ['额部', '入门'], bodyParts: ['FOREHEAD'] },
+  'p-60s': { keywords: ['音频', '解剖小话题'], bodyParts: [] },
+  'p-yxy': { keywords: ['科普', '我不怕打针'], bodyParts: [] },
+};
+for (const p of PRODUCTS) Object.assign(p, META[p.id]);
+
 export const BANNERS = [
-  { id: 'b1', title: '“救”在眼前 并发症专题 北京专场', image: art(['“救”在眼前'], '并发症专题 · 北京专场 · 早鸟报名中', 'navy', '线下精品课', 750, 320), link: '/pages/course/detail?id=o-rescue', visibleTo: BOTH },
-  { id: 'b2', title: '肉毒素应用 + 解密 SMAS', image: art(['肉毒素应用 + 解密 SMAS'], '吴宇萌 · 首发深度精讲 · 5 节课程', 'blue', '线上精品课', 750, 320), link: '/pages/course/detail?id=p-smas', visibleTo: BOTH },
-  { id: 'b3', title: '直播课程合集', image: art(['直播课程合集'], '解剖学底层逻辑 · 结合临床操作 · 热门话题', 'teal', '合集', 750, 320), link: '/pages/course/detail?id=s-live', visibleTo: BOTH },
-  { id: 'b4', title: '循证解剖 · 胶原临床应用精讲', image: art(['循证解剖', '胶原临床应用精讲'], '逻辑解剖与胶原产品联合应用系列课', 'blue', '系列课', 750, 320), link: '/pages/course/detail?id=s-collagen', visibleTo: BOTH },
+  { id: 'b1', title: '“救”在眼前 并发症专题 北京专场', image: art(['“救”在眼前'], '并发症专题 · 北京专场 · 早鸟报名中', 'navy', '线下精品课', 1000, 428), link: '/pages/course/detail?id=o-rescue', visibleTo: BOTH },
+  { id: 'b2', title: '肉毒素应用 + 解密 SMAS', image: art(['肉毒素应用 + 解密 SMAS'], '吴宇萌 · 首发深度精讲 · 5 节课程', 'blue', '线上精品课', 1000, 428), link: '/pages/course/detail?id=p-smas', visibleTo: BOTH },
+  { id: 'b3', title: '直播课程合集', image: art(['直播课程合集'], '解剖学底层逻辑 · 结合临床操作 · 热门话题', 'teal', '合集', 1000, 428), link: '/pages/course/detail?id=s-live', visibleTo: BOTH },
+  { id: 'b4', title: '循证解剖 · 胶原临床应用精讲', image: art(['循证解剖', '胶原临床应用精讲'], '逻辑解剖与胶原产品联合应用系列课', 'blue', '系列课', 1000, 428), link: '/pages/course/detail?id=s-collagen', visibleTo: BOTH },
 ];
 
 /** 首页推荐栏目：后台可为医生 / 从业者分别配置，演示中两种身份看到的内容一致 */
@@ -542,4 +578,41 @@ export const JOIN_PAGE: JoinPageConfig = {
   formTitle: '提交合作意向',
   submitText: '提交',
   successText: '已收到你的合作意向，商务顾问会在 1~2 个工作日内与你联系',
+};
+
+export const ABOUT_PAGE: AboutPageConfig = {
+  brand: { name: '析芒教育 · 逻辑解剖', slogan: '以解剖立学，以临床立教' },
+  quote: {
+    text: '夫道者陶冶万物，终始无形，寂然不动。大通混冥。深闳广大，不可为外，析毫剖芒，不可为内。无环堵之宇，而生有无之总名也。',
+    source: '《文子·道原》',
+  },
+  company: {
+    title: '析芒教育 · 逻辑解剖',
+    paragraphs: [
+      '析芒，取自《文子·道原》中「析毫剖芒」，意为分割剖析毫毛芒刺，形容剖析细微透彻。',
+      '逻辑解剖作为一种教学理念，核心目标是深化医美行业对面颈部解剖学的理解与应用，从而提高治疗的安全性和有效性。析芒教育一直以来坚持的面部精细解剖与之相契合，也是逻辑解剖理念的基石。',
+    ],
+  },
+  founder: {
+    name: '吴宇萌',
+    title: '逻辑解剖理念创始人',
+    photo: null,
+    tags: ['析芒教育咨询有限公司 CEO', '整形外科主诊医师', '面颈部解剖讲师', '十年解剖教学深耕'],
+    bio: '',
+  },
+  stats: [
+    { value: '400+', label: '线上解剖课分享' },
+    { value: '500+', label: '解剖现场演讲' },
+    { value: '600+', label: '标本精细解剖' },
+    { value: '万例', label: '临床案例经验' },
+  ],
+};
+
+/** 课程顾问：正式版在后台填写微信号、上传二维码；演示版不放真实微信号 */
+export const CONSULT: ConsultConfig = {
+  enabled: true,
+  title: '添加课程顾问微信',
+  desc: '获取课程资料、开课提醒与报名咨询',
+  wechatId: '',
+  qrImage: null,
 };

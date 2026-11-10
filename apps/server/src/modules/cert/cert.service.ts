@@ -1,10 +1,22 @@
 import { HttpStatus, Injectable, NotFoundException, NotImplementedException } from '@nestjs/common';
-import { CertStatus, ErrorCode } from '@luoji/shared';
+import { CertStatus, ErrorCode, IdentityType } from '@luoji/shared';
 import { BizException } from '../../common/exceptions/biz.exception';
 import { CryptoService } from '../../common/crypto/crypto.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import type { ReviewCertDto, SubmitCertDto } from './cert.dto';
 import { nextCertStatus } from './cert.state';
+
+/** 按身份只保存该身份需要的字段，避免前端多传的字段混进来 */
+function certFields(dto: SubmitCertDto) {
+  const doctor = dto.identityType === IdentityType.DOCTOR;
+  return {
+    organization: dto.organization,
+    province: doctor ? dto.province : null,
+    city: doctor ? dto.city : null,
+    department: doctor ? dto.department : null,
+    position: doctor ? null : dto.position,
+  };
+}
 
 @Injectable()
 export class CertService {
@@ -37,7 +49,7 @@ export class CertService {
 
   async submit(userId: string, dto: SubmitCertDto) {
     // 只允许引用本人目录下的文件，防止拿别人上传的证件冒充
-    if (dto.files.some((key) => !key.startsWith(`cert/${userId}/`))) {
+    if ((dto.files ?? []).some((key) => !key.startsWith(`cert/${userId}/`))) {
       throw new BizException(ErrorCode.BAD_REQUEST, '证件文件不属于当前用户');
     }
 
@@ -52,11 +64,11 @@ export class CertService {
         data: {
           userId,
           identityType: dto.identityType,
-          realNameEnc: this.crypto.encrypt(dto.realName),
-          licenseNoEnc: dto.licenseNo ? this.crypto.encrypt(dto.licenseNo) : null,
-          licenseNoHash: dto.licenseNo ? this.crypto.hash(dto.licenseNo) : null,
-          organization: dto.organization,
-          files: dto.files,
+          ...certFields(dto),
+          realNameEnc: dto.realName ? this.crypto.encrypt(dto.realName) : null,
+          phoneEnc: this.crypto.encrypt(dto.phone),
+          phoneMasked: CryptoService.maskPhone(dto.phone),
+          files: dto.files ?? [],
           status: CertStatus.PENDING,
         },
         select: { id: true, status: true, createdAt: true },
@@ -117,10 +129,11 @@ export class CertService {
 
     await this.prisma.auditLog.create({ data: { adminId, action: 'CERT_VIEW', target: certId } });
 
-    const { realNameEnc, licenseNoEnc, licenseNoHash: _hash, ...rest } = cert;
+    const { realNameEnc, licenseNoEnc, licenseNoHash: _hash, phoneEnc, ...rest } = cert;
     return {
       ...rest,
-      realName: this.crypto.decrypt(realNameEnc),
+      realName: realNameEnc ? this.crypto.decrypt(realNameEnc) : null,
+      phone: phoneEnc ? this.crypto.decrypt(phoneEnc) : null,
       licenseNo: licenseNoEnc ? this.crypto.decrypt(licenseNoEnc) : null,
       // TODO(WP03)：files 转换为 5 分钟有效的 COS 私有桶签名 URL
       fileUrls: [] as string[],

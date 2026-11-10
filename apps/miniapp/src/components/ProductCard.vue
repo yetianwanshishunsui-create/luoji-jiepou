@@ -1,13 +1,19 @@
 <template>
   <view class="item" @click="open">
-    <image v-if="product.cover" class="cover" :src="product.cover" mode="aspectFill" />
-    <view v-else class="cover" />
+    <view class="cover-box">
+      <image v-if="product.cover" class="cover" :src="product.cover" mode="aspectFill" />
+      <view v-else class="cover" />
+      <text class="type">{{ ProductTypeLabel[product.type] }}</text>
+    </view>
     <view class="info">
       <view class="title">
         <text v-if="product.priceRule" class="rule-tag">{{ product.priceRule.type === 'EARLY_BIRD' ? '早鸟' : '限时' }}</text>
         {{ product.title }}
       </view>
-      <view class="muted sub">{{ product.subtitle || ProductTypeLabel[product.type] }}</view>
+      <view v-if="product.keywords?.length" class="kws">
+        <text v-for="k in product.keywords.slice(0, 2)" :key="k" class="kw-mini">{{ k }}</text>
+      </view>
+      <view v-else class="muted sub">{{ product.subtitle }}</view>
       <view class="bottom">
         <text v-if="product.type === 'OFFLINE'" class="price">{{ product.minDepositCent != null ? `定金 ${money(product.minDepositCent, product.pricePrefix)} 起` : '暂无场次' }}</text>
         <text v-else-if="product.pricingMode === 'FREE'" class="free">免费</text>
@@ -33,39 +39,81 @@ const open = () => uni.navigateTo({ url: `/pages/course/detail?id=${props.produc
 .item {
   display: flex;
   gap: 24rpx;
-  padding: 24rpx 0;
-  border-bottom: 1rpx solid #f0f2f1;
+  padding: 26rpx 0;
+  border-bottom: 1rpx solid $line;
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 4rpx;
+  }
+}
+.cover-box {
+  position: relative;
+  flex-shrink: 0;
 }
 .cover {
-  width: 220rpx;
-  height: 150rpx;
-  border-radius: 12rpx;
+  display: block;
+  width: 236rpx;
+  height: 158rpx;
+  border-radius: 16rpx;
   background: $brand-light;
-  flex-shrink: 0;
+}
+.type {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 2rpx 12rpx;
+  border-radius: 16rpx 0 12rpx 0;
+  background: rgba(20, 48, 111, 0.72);
+  color: #fff;
+  font-size: 20rpx;
 }
 .info {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
 }
 .title {
+  font-size: 28rpx;
   font-weight: 600;
-  line-height: 1.4;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .rule-tag {
   display: inline-block;
   margin-right: 8rpx;
   padding: 0 10rpx;
   border-radius: 6rpx;
-  background: #d4380d;
+  background: linear-gradient(135deg, #ff7a45, $price);
   color: #fff;
   font-size: 20rpx;
   font-weight: 500;
   line-height: 32rpx;
   vertical-align: 2rpx;
 }
+.kws {
+  margin-top: 10rpx;
+  display: flex;
+  gap: 10rpx;
+  overflow: hidden;
+}
+.kw-mini {
+  flex-shrink: 0;
+  padding: 0 12rpx;
+  border-radius: 6rpx;
+  background: $brand-soft;
+  color: #4f6ea8;
+  font-size: 20rpx;
+  line-height: 34rpx;
+}
 .sub {
   margin-top: 8rpx;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .bottom {
   margin-top: auto;
@@ -76,7 +124,7 @@ const open = () => uni.navigateTo({ url: `/pages/course/detail?id=${props.produc
 }
 .origin {
   margin-left: 12rpx;
-  color: $text-secondary;
+  color: $text-weak;
   font-size: 22rpx;
   text-decoration: line-through;
 }

@@ -17,7 +17,7 @@
       </view>
 
       <view class="card">
-        <view class="label">选择身份</view>
+        <view class="step">1 · 选择身份</view>
         <view class="identity">
           <view
             v-for="t in identities"
@@ -25,25 +25,62 @@
             :class="['identity-item', { active: form.identityType === t }]"
             @click="form.identityType = t"
           >
-            {{ IdentityTypeLabel[t] }}
+            <text class="identity-name">{{ IdentityTypeLabel[t] }}</text>
+            <text class="identity-desc">{{ t === 'DOCTOR' ? '执业医师' : '机构 / 品牌 / 渠道' }}</text>
           </view>
         </view>
+      </view>
 
-        <view class="label">真实姓名</view>
-        <input v-model="form.realName" class="input" maxlength="32" placeholder="与证件一致" />
+      <view class="card">
+        <view class="step">2 · 填写信息</view>
+        <template v-if="isDoctor">
+          <view class="field">
+            <text class="label">姓名</text>
+            <input v-model="form.realName" class="input" maxlength="32" placeholder="与执业证一致" />
+          </view>
+          <picker :range="PROVINCES" :value="provinceIndex" @change="onProvince">
+            <view class="field">
+              <text class="label">省份</text>
+              <text :class="['input', 'pick', { empty: !form.province }]">{{ form.province || '请选择' }}</text>
+              <text class="chev">›</text>
+            </view>
+          </picker>
+          <view class="field">
+            <text class="label">城市</text>
+            <input v-model="form.city" class="input" maxlength="32" placeholder="如 杭州" />
+          </view>
+        </template>
+        <view class="field">
+          <text class="label">机构</text>
+          <input v-model="form.organization" class="input" maxlength="128" :placeholder="isDoctor ? '所在医院 / 机构全称' : '所在机构全称'" />
+        </view>
+        <view v-if="isDoctor" class="field">
+          <text class="label">科室</text>
+          <input v-model="form.department" class="input" maxlength="64" placeholder="如 整形外科" />
+        </view>
+        <view v-else class="field">
+          <text class="label">职位</text>
+          <input v-model="form.position" class="input" maxlength="64" placeholder="如 咨询师、店长" />
+        </view>
+        <view class="field last">
+          <text class="label">电话</text>
+          <input v-model="form.phone" class="input" type="number" maxlength="11" placeholder="手机号" />
+        </view>
+      </view>
 
-        <view class="label">{{ form.identityType === 'DOCTOR' ? '医师执业证号' : '资格证 / 工作证编号' }}</view>
-        <input v-model="form.licenseNo" class="input" maxlength="64" placeholder="与证件一致" />
-
-        <view class="label">{{ form.identityType === 'DOCTOR' ? '所在医院' : '所在机构' }}</view>
-        <input v-model="form.organization" class="input" maxlength="128" placeholder="请填写全称" />
-
-        <view class="label">证件照片（{{ files.length }}/6）</view>
+      <view class="card">
+        <view class="step">
+          3 · {{ isDoctor ? '上传执业证照片' : '上传工作证 / 胸牌' }}
+          <text class="optional">{{ isDoctor ? '必填' : '选填' }}</text>
+        </view>
         <view class="files">
           <image v-for="(f, i) in files" :key="f.key" :src="f.local" class="file" mode="aspectFill" @click="remove(i)" />
-          <view v-if="files.length < 6" class="file add" @click="choose">+</view>
+          <view v-if="files.length < 6" class="file add" @click="choose">
+            <text class="plus">+</text>
+            <text class="add-text">{{ isDoctor ? '执业证' : '工作证 / 胸牌' }}</text>
+          </view>
         </view>
-        <view class="muted tip">证件仅用于身份审核，加密存储，不会对外展示</view>
+        <view class="muted tip">证件仅用于身份审核，加密存储，不会对外展示；点击已选照片可删除</view>
       </view>
 
       <view class="actions">
@@ -54,9 +91,9 @@
 </template>
 
 <script setup lang="ts">
-import { IdentityType, IdentityTypeLabel, type CertStatus } from '@luoji/shared';
+import { IdentityType, IdentityTypeLabel, PROVINCES, type CertStatus } from '@luoji/shared';
 import { onShow } from '@dcloudio/uni-app';
-import { computed, reactive, ref } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import { api } from '@/api';
 import { useUserStore } from '@/stores/user';
 
@@ -67,14 +104,29 @@ const state = ref<{
   identityType: IdentityType | null;
   latest: { status: CertStatus; rejectReason: string | null } | null;
 }>();
-const form = reactive({ identityType: IdentityType.DOCTOR as IdentityType, realName: '', licenseNo: '', organization: '' });
+const form = reactive({
+  identityType: IdentityType.DOCTOR as IdentityType,
+  realName: '',
+  province: '',
+  city: '',
+  organization: '',
+  department: '',
+  position: '',
+  phone: '',
+});
+const isDoctor = computed(() => form.identityType === IdentityType.DOCTOR);
+const provinceIndex = computed(() => Math.max(0, PROVINCES.indexOf(form.province as (typeof PROVINCES)[number])));
+const onProvince = (e: { detail: { value: number | string } }) => (form.province = PROVINCES[Number(e.detail.value)]);
 const files = ref<{ local: string; key: string }[]>([]);
 const submitting = ref(false);
 
 const DEMO = import.meta.env.VITE_DEMO === 'true';
-// 演示版可不传证件直接提交
-const canSubmit = computed(
-  () => !!form.realName.trim() && !!form.licenseNo.trim() && !!form.organization.trim() && (files.value.length > 0 || DEMO),
+const filled = (v: string) => !!v.trim();
+/** 医生：姓名、省份、城市、机构、科室、电话、执业证照片全部必填；从业者：电话、机构、职位必填，照片选填 */
+const canSubmit = computed(() =>
+  isDoctor.value
+    ? [form.realName, form.province, form.city, form.organization, form.department].every(filled) && /^1\d{10}$/.test(form.phone) && files.value.length > 0
+    : [form.organization, form.position].every(filled) && /^1\d{10}$/.test(form.phone),
 );
 
 /**
@@ -102,18 +154,22 @@ async function choose() {
 }
 
 const remove = (i: number) => files.value.splice(i, 1);
+// 两种身份要传的证件不同，切换身份时清空已选照片
+watch(
+  () => form.identityType,
+  () => (files.value = []),
+);
 const goHome = () => uni.switchTab({ url: '/pages/index/index' });
 
 async function submit() {
   submitting.value = true;
   try {
-    await api.certSubmit({
-      identityType: form.identityType,
-      realName: form.realName.trim(),
-      licenseNo: form.licenseNo.trim(),
-      organization: form.organization.trim(),
-      files: files.value.map((f) => f.key),
-    });
+    const base = { identityType: form.identityType, organization: form.organization.trim(), phone: form.phone, files: files.value.map((f) => f.key) };
+    await api.certSubmit(
+      isDoctor.value
+        ? { ...base, realName: form.realName.trim(), province: form.province, city: form.city.trim(), department: form.department.trim() }
+        : { ...base, position: form.position.trim() },
+    );
     // TODO(WP03)：提交后请求订阅消息授权（审核结果通知）
     uni.showToast({ title: '已提交，等待审核', icon: 'success' });
     await Promise.all([load(), user.refreshProfile()]);
@@ -145,34 +201,79 @@ onShow(async () => {
   margin-bottom: 24rpx;
 }
 .reject {
-  color: #d4380d;
-  background: #fff2ee;
+  color: $price;
+  background: #fff4f1;
 }
-.label {
-  margin: 28rpx 0 12rpx;
+.step {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: $brand-deep;
+  margin-bottom: 20rpx;
+}
+.optional {
+  margin-left: 12rpx;
+  padding: 2rpx 12rpx;
+  border-radius: 999rpx;
+  background: $brand-light;
+  color: $brand;
+  font-size: 20rpx;
   font-weight: 500;
 }
 .identity {
   display: flex;
-  gap: 24rpx;
+  gap: 20rpx;
 }
 .identity-item {
   flex: 1;
-  text-align: center;
-  padding: 24rpx 0;
-  border-radius: 12rpx;
-  border: 2rpx solid #e3e8e5;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  padding: 26rpx 28rpx;
+  border-radius: 20rpx;
+  border: 2rpx solid $line;
+  background: $brand-soft;
   &.active {
     border-color: $brand;
-    color: $brand;
-    background: $brand-light;
+    background: linear-gradient(135deg, #eef4ff, #dce8ff);
+    .identity-name {
+      color: $brand;
+    }
   }
 }
+.identity-name {
+  font-size: 32rpx;
+  font-weight: 600;
+}
+.identity-desc {
+  font-size: 22rpx;
+  color: $text-secondary;
+}
+.field {
+  display: flex;
+  align-items: center;
+  min-height: 96rpx;
+  border-bottom: 1rpx solid $line;
+  &.last {
+    border-bottom: none;
+  }
+}
+.label {
+  width: 120rpx;
+  flex-shrink: 0;
+  color: $text-secondary;
+}
 .input {
-  height: 80rpx;
-  padding: 0 20rpx;
-  border-radius: 12rpx;
-  background: $bg;
+  flex: 1;
+  height: 96rpx;
+  line-height: 96rpx;
+  font-size: 28rpx;
+}
+.pick.empty {
+  color: #b5bccb;
+}
+.chev {
+  color: $text-weak;
+  font-size: 32rpx;
 }
 .files {
   display: flex;
@@ -182,14 +283,25 @@ onShow(async () => {
 .file {
   width: 200rpx;
   height: 150rpx;
-  border-radius: 12rpx;
-  background: $bg;
+  border-radius: 16rpx;
+  background: $brand-soft;
 }
 .add {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 60rpx;
+  border: 2rpx dashed #c5d6f5;
+  box-sizing: border-box;
+}
+.plus {
+  font-size: 48rpx;
+  line-height: 1;
+  color: $brand;
+}
+.add-text {
+  margin-top: 6rpx;
+  font-size: 20rpx;
   color: $text-secondary;
 }
 .demo-tip {
@@ -197,9 +309,9 @@ onShow(async () => {
   color: $brand;
 }
 .tip {
-  margin-top: 16rpx;
+  margin-top: 20rpx;
 }
 .actions {
-  padding: 0 24rpx 60rpx;
+  padding: 8rpx 28rpx 60rpx;
 }
 </style>

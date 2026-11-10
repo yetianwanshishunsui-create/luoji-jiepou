@@ -9,6 +9,7 @@ import { genOrderNo } from '../order/order-no';
 import { ORDER_TTL_MS, OrderService } from '../order/order.service';
 import { ACTIVE_STATUSES, balanceProblem, enrollProblem, remainingSeats } from './enrollment.rules';
 
+const DAY_MS = 86_400_000;
 const activeWhere = { status: { in: [...ACTIVE_STATUSES] } } satisfies Prisma.EnrollmentWhereInput;
 
 @Injectable()
@@ -172,6 +173,71 @@ export class OfflineService {
       depositOrder: e.depositOrder,
       balanceOrder: e.balanceOrder,
     }));
+  }
+
+  /**
+   * 线下会议日程（平台排期）：时间范围内各线下课的场次，标出是否已加入我的计划、是否已报名。
+   * 范围最多 62 天，够周视图和月视图翻页用。
+   */
+  async schedule(userId: string, identity: IdentityType, from: Date, to: Date) {
+    if (!(from < to) || to.getTime() - from.getTime() > 62 * DAY_MS) {
+      throw new BizException(ErrorCode.BAD_REQUEST, '日期范围不正确（最多 62 天）');
+    }
+    return this.scheduleRows(userId, identity, { startAt: { lt: to }, endAt: { gte: from } });
+  }
+
+  /** 我的计划：手动加入的场次 + 有效报名的场次，只看还没结束的 */
+  async plans(userId: string, identity: IdentityType) {
+    const rows = await this.scheduleRows(userId, identity, {
+      endAt: { gte: new Date() },
+      OR: [{ plans: { some: { userId } } }, { enrollments: { some: { userId, ...activeWhere } } }],
+    });
+    return rows;
+  }
+
+  async addPlan(userId: string, identity: IdentityType, sessionId: string) {
+    const session = await this.prisma.offlineSession.findFirst({ where: { id: sessionId, enabled: true } });
+    if (!session) throw new NotFoundException('场次不存在');
+    await this.loadProduct(session.productId, identity);
+    await this.prisma.offlinePlan.upsert({
+      where: { userId_sessionId: { userId, sessionId } },
+      create: { userId, sessionId },
+      update: {},
+    });
+    return { planned: true };
+  }
+
+  async removePlan(userId: string, sessionId: string) {
+    await this.prisma.offlinePlan.deleteMany({ where: { userId, sessionId } });
+    return { planned: false };
+  }
+
+  private async scheduleRows(userId: string, identity: IdentityType, where: Prisma.OfflineSessionWhereInput) {
+    const sessions = await this.prisma.offlineSession.findMany({
+      where: { ...where, enabled: true, product: { status: 'ONLINE', type: 'OFFLINE' } },
+      orderBy: { startAt: 'asc' },
+      take: 300,
+      include: {
+        product: { select: { id: true, title: true, cover: true, keywords: true, visibleTo: true } },
+        _count: { select: { enrollments: { where: activeWhere } } },
+        enrollments: { where: { userId, ...activeWhere }, select: { id: true, status: true } },
+        plans: { where: { userId }, select: { userId: true } },
+      },
+    });
+    return sessions
+      .filter((s) => isVisibleTo(s.product.visibleTo, identity))
+      .map((s) => ({
+        id: s.id,
+        title: s.title,
+        startAt: s.startAt,
+        endAt: s.endAt,
+        address: s.address,
+        quota: s.quota,
+        remaining: remainingSeats(s.quota, s._count.enrollments),
+        product: { id: s.product.id, title: s.product.title, cover: s.product.cover, keywords: s.product.keywords },
+        planned: s.plans.length > 0,
+        myEnrollment: s.enrollments[0] ?? null,
+      }));
   }
 
   private async loadProduct(productId: string, identity: IdentityType) {

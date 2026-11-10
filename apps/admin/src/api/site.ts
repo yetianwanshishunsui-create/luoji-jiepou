@@ -1,4 +1,4 @@
-import type { BannerPosition, IdentityType, JoinPageConfig, ProductType } from '@luoji/shared';
+import type { AboutPageConfig, BannerPosition, ConsultConfig, IdentityType, JoinPageConfig, ProductType } from '@luoji/shared';
 import { request } from './http';
 
 export interface Banner {
@@ -46,4 +46,10 @@ export const siteApi = {
   joinPage: () => request<{ value: JoinPageConfig; updatedAt: string | null }>({ url: '/admin/v1/site/join-page' }),
   saveJoinPage: (data: JoinPageConfig) =>
     request<{ value: JoinPageConfig; updatedAt: string | null }>({ url: '/admin/v1/site/join-page', method: 'PUT', data }),
+  aboutPage: () => request<{ value: AboutPageConfig; updatedAt: string | null }>({ url: '/admin/v1/site/about-page' }),
+  saveAboutPage: (data: AboutPageConfig) =>
+    request<{ value: AboutPageConfig; updatedAt: string | null }>({ url: '/admin/v1/site/about-page', method: 'PUT', data }),
+  consult: () => request<{ value: ConsultConfig; updatedAt: string | null }>({ url: '/admin/v1/site/consult' }),
+  saveConsult: (data: ConsultConfig) =>
+    request<{ value: ConsultConfig; updatedAt: string | null }>({ url: '/admin/v1/site/consult', method: 'PUT', data }),
 };

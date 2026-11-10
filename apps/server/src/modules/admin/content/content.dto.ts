@@ -17,7 +17,7 @@ import {
   Min,
   ValidateIf,
 } from 'class-validator';
-import { IdentityType, LessonType, PricingMode, ProductType } from '@luoji/shared';
+import { BodyPart, IdentityType, LessonType, PricingMode, ProductType } from '@luoji/shared';
 import { PageQueryDto } from '../../../common/dto/page.dto';
 
 const IDENTITIES = Object.values(IdentityType);
@@ -119,6 +119,19 @@ export class UpdateProductDto extends VisibleToDto {
   @IsOptional()
   @IsInt()
   sort?: number;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(8, { message: '关键词最多 8 个' })
+  @IsString({ each: true })
+  @MaxLength(16, { each: true, message: '每个关键词最多 16 个字' })
+  keywords?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @ArrayUnique()
+  @IsIn(Object.values(BodyPart), { each: true })
+  bodyParts?: BodyPart[];
 }
 
 export class CreateProductDto extends UpdateProductDto {

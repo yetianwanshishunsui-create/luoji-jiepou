@@ -1,6 +1,8 @@
 <template>
   <!-- 认证准入：未认证时替代页面内容，引导用户认证 -->
   <view v-if="!user.certified" class="gate card">
+    <image class="gate-mark" src="/static/brand/wordmark.png" mode="heightFix" />
+    <view class="gate-slogan">以解剖立学 · 以临床立教</view>
     <view class="title">{{ title }}</view>
     <view class="muted desc">{{ desc }}</view>
     <button v-if="status !== 'PENDING'" class="btn-primary" @click="goCert">去认证</button>
@@ -33,6 +35,15 @@ const goCert = () => uni.navigateTo({ url: '/pages/cert/index' });
   margin-top: 120rpx;
   text-align: center;
   padding: 64rpx 40rpx;
+}
+.gate-mark {
+  height: 64rpx;
+}
+.gate-slogan {
+  margin: 12rpx 0 56rpx;
+  font-size: 22rpx;
+  letter-spacing: 6rpx;
+  color: $text-secondary;
 }
 .title {
   font-size: 36rpx;

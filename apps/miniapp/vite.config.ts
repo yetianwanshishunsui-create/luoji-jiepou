@@ -1,5 +1,6 @@
 import uni from '@dcloudio/vite-plugin-uni';
-import { readFileSync } from 'node:fs';
+import { readFileSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defineConfig, loadEnv } from 'vite';
 
@@ -15,6 +16,17 @@ export default defineConfig(({ mode }) => {
       ...(mode === 'demo'
         ? [{ name: 'demo-title', transformIndexHtml: (html: string) => html.replace('<title>逻辑解剖</title>', '<title>逻辑解剖 · 演示版</title>') }]
         : []),
+      // 非演示构建删掉演示封面等素材（uni 会原样复制整个 static 目录）
+      ...(env.VITE_DEMO === 'true'
+        ? []
+        : [
+            {
+              name: 'drop-demo-static',
+              closeBundle: () => {
+                if (process.env.UNI_OUTPUT_DIR) rmSync(join(process.env.UNI_OUTPUT_DIR, 'static/demo'), { recursive: true, force: true });
+              },
+            },
+          ]),
       // 非演示构建把演示后端换成空实现，正式包里不带演示数据（在 load 阶段替换，避开 uni 自带的 @ 别名解析）
       ...(env.VITE_DEMO === 'true'
         ? []

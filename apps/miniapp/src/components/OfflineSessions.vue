@@ -1,6 +1,6 @@
 <template>
   <view class="card">
-    <view class="section-title">选择场次</view>
+    <view class="sec-head"><view><text class="sec-title">选择场次</text><text class="sec-en">Sessions</text></view></view>
     <view v-if="loaded && !sessions.length" class="muted empty">暂无可报名的场次，敬请期待</view>
     <view
       v-for="s in sessions"
@@ -24,9 +24,12 @@
     </view>
   </view>
 
-  <view v-if="sessions.length" class="bar">
-    <button v-if="selected?.myEnrollment" class="btn-primary" @click="goMine">查看我的报名</button>
-    <button v-else class="btn-primary" :disabled="!selected" @click="sheet = true">
+  <view class="bar">
+    <!-- 左侧由页面放入「顾问」等入口 -->
+    <slot name="left" />
+    <button v-if="!sessions.length" class="btn-primary bar-btn" disabled>暂无可报名场次</button>
+    <button v-else-if="selected?.myEnrollment" class="btn-primary bar-btn" @click="goMine">查看我的报名</button>
+    <button v-else class="btn-primary bar-btn" :disabled="!selected" @click="sheet = true">
       {{ selected ? `报名并支付${selected.balanceCent ? '定金' : ''} ${money(selected.depositCent, selected.pricePrefix)}` : '请选择场次' }}
     </button>
   </view>
@@ -106,22 +109,19 @@ watch(
 </script>
 
 <style lang="scss" scoped>
-.section-title {
-  font-size: 30rpx;
-  font-weight: 600;
-  margin-bottom: 12rpx;
-}
 .empty {
   padding: 24rpx 0;
 }
 .session {
-  padding: 24rpx;
-  margin-top: 16rpx;
-  border-radius: 12rpx;
-  border: 2rpx solid #eef1ef;
+  padding: 26rpx 28rpx;
+  margin-top: 18rpx;
+  border-radius: 20rpx;
+  border: 2rpx solid $line;
+  background: $brand-soft;
   &.active {
     border-color: $brand;
-    background: $brand-light;
+    background: linear-gradient(135deg, #eef4ff, #dce8ff);
+    box-shadow: 0 8rpx 20rpx rgba(42, 91, 215, 0.12);
   }
   &.disabled {
     opacity: 0.5;
@@ -150,10 +150,17 @@ watch(
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 20rpx 32rpx calc(20rpx + env(safe-area-inset-bottom));
-  background: #fff;
-  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.04);
+  display: flex;
+  align-items: center;
+  gap: 28rpx;
+  padding: 18rpx 32rpx calc(18rpx + env(safe-area-inset-bottom));
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 -6rpx 24rpx rgba(20, 48, 111, 0.06);
   z-index: 5;
+}
+.bar-btn {
+  flex: 1;
+  margin: 0;
 }
 .mask {
   position: fixed;
@@ -168,8 +175,8 @@ watch(
   bottom: 0;
   z-index: 11;
   background: #fff;
-  border-radius: 24rpx 24rpx 0 0;
-  padding: 32rpx 32rpx calc(24rpx + env(safe-area-inset-bottom));
+  border-radius: 32rpx 32rpx 0 0;
+  padding: 36rpx 36rpx calc(28rpx + env(safe-area-inset-bottom));
 }
 .sheet-title {
   text-align: center;

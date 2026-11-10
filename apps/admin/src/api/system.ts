@@ -97,4 +97,6 @@ export const AuditActionLabel: Record<string, string> = {
   BANNER_DELETE: '删除 Banner',
   HOME_SLOTS_UPDATE: '修改首页推荐',
   JOIN_PAGE_UPDATE: '修改招商页',
+  ABOUT_PAGE_UPDATE: '修改关于我们',
+  CONSULT_UPDATE: '修改课程顾问',
 };

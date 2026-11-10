@@ -3,7 +3,8 @@
   <view v-if="data" class="card">
     <view class="title-row" @click="openAll(false)">
       <view class="title">
-        <text>学员评价（{{ data.count }}）</text>
+        <text class="sec-title">学员评价</text>
+        <text class="count">{{ data.count }} 条</text>
         <text v-if="data.avgRating != null" class="score">★ {{ data.avgRating.toFixed(1) }}</text>
       </view>
       <text class="muted">查看全部 ›</text>
@@ -47,6 +48,11 @@ watch(() => [props.productId, props.refreshKey], load, { immediate: true });
   display: flex;
   align-items: center;
   gap: 16rpx;
+}
+.count {
+  font-size: 24rpx;
+  font-weight: 400;
+  color: $text-secondary;
 }
 .score {
   font-size: 26rpx;

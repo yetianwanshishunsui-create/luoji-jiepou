@@ -29,7 +29,12 @@ import { RedisModule } from './redis/redis.module';
 
 function flattenValidationErrors(errors: ValidationError[], out: string[] = []): string[] {
   for (const e of errors) {
-    if (e.constraints) out.push(...Object.values(e.constraints));
+    if (e.constraints) {
+      // 字段没填时只提示「请填写 xx」，不再附带长度、类型等连带错误
+      const c = e.constraints;
+      const missing = c.isNotEmpty ?? c.isIn ?? c.arrayMinSize;
+      out.push(...(missing && (e.value === undefined || e.value === null || e.value === '' || (Array.isArray(e.value) && !e.value.length)) ? [missing] : Object.values(c)));
+    }
     if (e.children?.length) flattenValidationErrors(e.children, out);
   }
   return out;

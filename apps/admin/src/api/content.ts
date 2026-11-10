@@ -1,4 +1,4 @@
-import type { IdentityType, LessonType, PageResult, PricingMode, ProductType } from '@luoji/shared';
+import type { IdentityType, LessonType, PageResult, PricingMode, ProductType, BodyPart } from '@luoji/shared';
 import { request } from './http';
 
 export type PublishStatus = 'DRAFT' | 'ONLINE' | 'OFFLINE';
@@ -48,6 +48,8 @@ export interface ProductForm {
   visibleTo: IdentityType[];
   categoryId: string | null;
   sort: number;
+  keywords: string[];
+  bodyParts: BodyPart[];
 }
 
 export interface Lesson {

@@ -46,6 +46,8 @@ async function main() {
       visibleTo: BOTH,
       status: 'ONLINE',
       categoryId: 'cat-on-live',
+      keywords: ['鼻部', '栓塞', '危机处理'],
+      bodyParts: ['NOSE'],
       chapters: {
         create: {
           title: '第一章',

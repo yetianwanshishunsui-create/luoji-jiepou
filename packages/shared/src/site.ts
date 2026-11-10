@@ -81,3 +81,65 @@ export const DEFAULT_JOIN_PAGE: JoinPageConfig = {
   submitText: '提交',
   successText: '我们会在 1~2 个工作日内与你联系',
 };
+
+// ───────── 关于我们（公司 + 创始人） ─────────
+
+export interface AboutPageConfig {
+  brand: { name: string; slogan: string };
+  /** 引文（如《文子·道原》） */
+  quote: { text: string; source: string };
+  company: { title: string; paragraphs: string[] };
+  founder: { name: string; title: string; photo: string | null; tags: string[]; bio: string };
+  stats: { value: string; label: string }[];
+}
+
+export const ABOUT_PAGE_KEY = 'about_page';
+
+export const DEFAULT_ABOUT_PAGE: AboutPageConfig = {
+  brand: { name: '析芒教育 · 逻辑解剖', slogan: '以解剖立学，以临床立教' },
+  quote: {
+    text: '夫道者陶冶万物，终始无形，寂然不动。大通混冥。深闳广大，不可为外，析毫剖芒，不可为内。无环堵之宇，而生有无之总名也。',
+    source: '《文子·道原》',
+  },
+  company: {
+    title: '析芒教育 · 逻辑解剖',
+    paragraphs: [
+      '析芒，取自《文子·道原》中「析毫剖芒」，意为分割剖析毫毛芒刺，形容剖析细微透彻。',
+      '逻辑解剖作为一种教学理念，核心目标是深化医美行业对面颈部解剖学的理解与应用，从而提高治疗的安全性和有效性。析芒教育一直以来坚持的面部精细解剖与之相契合，也是逻辑解剖理念的基石。',
+    ],
+  },
+  founder: {
+    name: '吴宇萌',
+    title: '逻辑解剖理念创始人',
+    photo: null,
+    tags: ['析芒教育咨询有限公司 CEO', '整形外科主诊医师', '面颈部解剖讲师', '十年解剖教学深耕'],
+    bio: '',
+  },
+  stats: [
+    { value: '400+', label: '线上解剖课分享' },
+    { value: '500+', label: '解剖现场演讲' },
+    { value: '600+', label: '标本精细解剖' },
+    { value: '万例', label: '临床案例经验' },
+  ],
+};
+
+// ───────── 课程顾问（详情页引导加微信） ─────────
+
+export interface ConsultConfig {
+  enabled: boolean;
+  title: string;
+  desc: string;
+  wechatId: string;
+  /** 顾问企业微信 / 个人微信二维码图片地址，小程序内长按识别 */
+  qrImage: string | null;
+}
+
+export const CONSULT_KEY = 'consult';
+
+export const DEFAULT_CONSULT: ConsultConfig = {
+  enabled: true,
+  title: '添加课程顾问微信',
+  desc: '获取课程资料、开课提醒与报名咨询',
+  wechatId: '',
+  qrImage: null,
+};

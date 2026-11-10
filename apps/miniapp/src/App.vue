@@ -22,28 +22,83 @@ onLaunch(() => {
 </script>
 
 <style lang="scss">
+/* 页面顶部淡蓝渐变，向下过渡到浅灰蓝底色，和导航栏颜色衔接 */
 page {
-  background: $bg;
+  background: linear-gradient(180deg, #e3edff 0, #eef4ff 320rpx, $bg 640rpx) no-repeat, $bg;
   color: $text;
   font-size: 28rpx;
+  font-family: -apple-system, 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
+  line-height: 1.5;
 }
 .card {
   background: #fff;
   border-radius: $radius;
-  padding: 28rpx;
-  margin: 24rpx;
+  padding: 32rpx;
+  margin: 24rpx 28rpx;
+  box-shadow: $shadow;
+}
+/* 区块标题：中文标题 + 英文小字，右侧可放「更多」 */
+.sec-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 12rpx;
+}
+.sec-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  letter-spacing: 1rpx;
+}
+.sec-en {
+  margin-left: 14rpx;
+  font-size: 20rpx;
+  letter-spacing: 3rpx;
+  color: $text-weak;
+  text-transform: uppercase;
+}
+.sec-more {
+  font-size: 24rpx;
+  color: $text-secondary;
 }
 .btn-primary {
-  background: $brand !important;
+  background: $brand-grad !important;
   color: #fff !important;
   border-radius: 999rpx !important;
+  box-shadow: 0 10rpx 24rpx rgba(42, 91, 215, 0.24);
+  font-weight: 500;
+  &::after {
+    border: none;
+  }
+  &[disabled] {
+    opacity: 0.5;
+  }
+}
+.btn-ghost {
+  background: $brand-light !important;
+  color: $brand !important;
+  border-radius: 999rpx !important;
+  font-weight: 500;
+  &::after {
+    border: none;
+  }
 }
 .muted {
   color: $text-secondary;
   font-size: 24rpx;
 }
 .price {
-  color: #d4380d;
+  color: $price;
   font-weight: 600;
+}
+/* 关键词标签 */
+.kw {
+  display: inline-block;
+  margin: 0 12rpx 12rpx 0;
+  padding: 4rpx 18rpx;
+  border-radius: 999rpx;
+  background: $brand-light;
+  color: $brand;
+  font-size: 22rpx;
+  line-height: 1.6;
 }
 </style>

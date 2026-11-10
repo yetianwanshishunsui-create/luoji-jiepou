@@ -54,7 +54,7 @@ onPullDownRefresh(() => load().finally(() => uni.stopPullDownRefresh()));
     color: $brand;
   }
   &.CREATED {
-    color: #d4380d;
+    color: $price;
   }
 }
 .refunded {

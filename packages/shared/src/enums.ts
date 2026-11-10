@@ -105,3 +105,16 @@ export const AdminRole = {
   FINANCE: 'FINANCE',
 } as const;
 export type AdminRole = (typeof AdminRole)[keyof typeof AdminRole];
+
+/** 课程按部位分类（首页部位图标、课程筛选） */
+export const BodyPart = {
+  FOREHEAD: 'FOREHEAD',
+  EYE: 'EYE',
+  NOSE: 'NOSE',
+  MIDFACE: 'MIDFACE',
+  LIP: 'LIP',
+  JAW: 'JAW',
+  NECK: 'NECK',
+  FULLFACE: 'FULLFACE',
+} as const;
+export type BodyPart = (typeof BodyPart)[keyof typeof BodyPart];

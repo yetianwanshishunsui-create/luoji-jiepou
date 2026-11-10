@@ -145,7 +145,7 @@ onLoad(async () => {
 .case,
 .faq {
   padding: 20rpx 0;
-  border-bottom: 1rpx solid #f0f2f1;
+  border-bottom: 1rpx solid $line;
   &:last-child {
     border-bottom: none;
   }

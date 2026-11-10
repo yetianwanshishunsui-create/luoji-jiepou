@@ -1,11 +1,46 @@
 <template>
   <view>
-    <view class="card profile">
+    <view class="profile">
       <image v-if="user.profile?.avatar" :src="user.profile.avatar" class="avatar" />
-      <view v-else class="avatar" />
-      <view>
+      <view v-else class="avatar">{{ (user.profile?.nickname || '微').slice(0, 1) }}</view>
+      <view class="who">
         <view class="name">{{ user.profile?.nickname || '微信用户' }}</view>
         <view class="muted">{{ user.profile?.phoneMasked || '未绑定手机号' }}</view>
+      </view>
+      <text :class="['cert-badge', { ok: user.certified }]" @click="go('/pages/cert/index')">{{ certText || '未认证' }}</text>
+    </view>
+
+    <view class="card quick">
+      <view class="quick-item" @click="go('/pages/order/list')">
+        <view class="quick-icon">单</view>
+        <text>我的订单</text>
+      </view>
+      <view class="quick-item" @click="go('/pages/offline/mine')">
+        <view class="quick-icon">报</view>
+        <text>线下报名</text>
+      </view>
+      <view class="quick-item" @click="go('/pages/coupon/mine')">
+        <view class="quick-icon">券</view>
+        <text>优惠券</text>
+      </view>
+      <view class="quick-item" @click="go('/pages/schedule/index?tab=mine')">
+        <view class="quick-icon">程</view>
+        <text>我的日程</text>
+      </view>
+    </view>
+
+    <view class="card menu">
+      <view class="menu-item" @click="go('/pages/cert/index')">
+        <text>身份认证</text>
+        <text class="muted">{{ certText }} ›</text>
+      </view>
+      <view class="menu-item" @click="go('/pages/coupon/center')">
+        <text>领券中心</text>
+        <text class="muted">›</text>
+      </view>
+      <view class="menu-item" @click="go('/pages/about/index')">
+        <text>关于逻辑解剖</text>
+        <text class="muted">品牌与创始人 ›</text>
       </view>
     </view>
 
@@ -13,9 +48,9 @@
       <view class="demo-title">演示工具</view>
       <view class="muted">演示版数据只保存在本机。切换身份可对比医生 / 从业者看到的首页和课程。</view>
       <view class="demo-actions">
-        <button size="mini" :class="{ 'btn-primary': user.profile?.identityType === 'DOCTOR' }" @click="demoSwitch('DOCTOR')">切换为医生</button>
-        <button size="mini" :class="{ 'btn-primary': user.profile?.identityType === 'PRACTITIONER' }" @click="demoSwitch('PRACTITIONER')">切换为从业者</button>
-        <button size="mini" @click="demoReset">重新开始体验</button>
+        <button size="mini" :class="user.profile?.identityType === 'DOCTOR' ? 'btn-primary' : 'btn-ghost'" @click="demoSwitch('DOCTOR')">切换为医生</button>
+        <button size="mini" :class="user.profile?.identityType === 'PRACTITIONER' ? 'btn-primary' : 'btn-ghost'" @click="demoSwitch('PRACTITIONER')">切换为从业者</button>
+        <button size="mini" class="btn-ghost" @click="demoReset">重新开始体验</button>
       </view>
     </view>
   </view>
@@ -71,26 +106,76 @@ onShow(async () => {
   display: flex;
   align-items: center;
   gap: 24rpx;
+  padding: 40rpx 36rpx 16rpx;
 }
 .avatar {
-  width: 112rpx;
-  height: 112rpx;
+  width: 120rpx;
+  height: 120rpx;
   border-radius: 50%;
-  background: $brand-light;
+  background: linear-gradient(150deg, #5d8ff5, #2a5bd7);
+  border: 6rpx solid #fff;
+  box-shadow: $shadow;
+  flex-shrink: 0;
+  color: #fff;
+  font-size: 44rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.who {
+  flex: 1;
+  min-width: 0;
 }
 .name {
-  font-size: 34rpx;
+  font-size: 36rpx;
   font-weight: 600;
-  margin-bottom: 8rpx;
+  margin-bottom: 6rpx;
+}
+.cert-badge {
+  flex-shrink: 0;
+  padding: 8rpx 20rpx;
+  border-radius: 999rpx;
+  background: #fff;
+  color: $text-secondary;
+  font-size: 22rpx;
+  &.ok {
+    background: $brand-grad;
+    color: #fff;
+  }
+}
+.quick {
+  display: flex;
+  justify-content: space-around;
+  padding: 32rpx 12rpx;
+}
+.quick-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+  font-size: 24rpx;
+}
+.quick-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 24rpx;
+  background: linear-gradient(160deg, #f3f7ff, #dde8ff);
+  color: $brand;
+  font-size: 30rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .menu {
-  padding: 0 28rpx;
+  padding: 0 32rpx;
 }
 .menu-item {
   display: flex;
   justify-content: space-between;
   padding: 32rpx 0;
-  border-bottom: 1rpx solid #f0f2f1;
+  border-bottom: 1rpx solid $line;
   &:last-child {
     border-bottom: none;
   }

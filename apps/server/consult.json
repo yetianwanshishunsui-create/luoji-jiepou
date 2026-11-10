@@ -1,0 +1,7 @@
+{
+  "desc": "获取课程资料、开课提醒与报名咨询",
+  "title": "添加课程顾问微信",
+  "enabled": true,
+  "qrImage": null,
+  "wechatId": "xm_kefu"
+}

@@ -1,12 +1,18 @@
 import { Body, Controller, Get, Param, ParseEnumPipe, Put, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import {
+  ABOUT_PAGE_KEY,
   AdminRole,
+  CONSULT_KEY,
+  DEFAULT_ABOUT_PAGE,
+  DEFAULT_CONSULT,
   DEFAULT_JOIN_PAGE,
   ErrorCode,
   homeSlotsKey,
   IdentityType,
   JOIN_PAGE_KEY,
+  type AboutPageConfig,
+  type ConsultConfig,
   type HomeSlotsConfig,
   type JoinPageConfig,
 } from '@luoji/shared';
@@ -17,7 +23,7 @@ import { AdminAuthGuard } from '../../../common/guards/admin-auth.guard';
 import { isVisibleTo } from '../../../common/visibility';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { SiteConfigService } from '../../site/site-config.service';
-import { HomeSlotsDto, JoinPageDto } from '../../site/site.dto';
+import { AboutPageDto, ConsultDto, HomeSlotsDto, JoinPageDto } from '../../site/site.dto';
 import { AuditService } from '../audit.service';
 
 @ApiTags('后台 · 运营配置')
@@ -92,5 +98,49 @@ export class AdminSiteConfigController {
     await this.site.set(JOIN_PAGE_KEY, value);
     await this.audit.log(admin.sub, 'JOIN_PAGE_UPDATE');
     return this.joinPage();
+  }
+
+  @Get('about-page')
+  aboutPage() {
+    return this.site.getWithMeta<AboutPageConfig>(ABOUT_PAGE_KEY, DEFAULT_ABOUT_PAGE);
+  }
+
+  @Put('about-page')
+  async saveAboutPage(@Body() dto: AboutPageDto, @CurrentAdmin() admin: AdminTokenPayload) {
+    const value: AboutPageConfig = {
+      brand: { name: dto.brand.name, slogan: dto.brand.slogan },
+      quote: { text: dto.quote.text, source: dto.quote.source },
+      company: { title: dto.company.title, paragraphs: dto.company.paragraphs.map((p) => p.trim()).filter(Boolean) },
+      founder: {
+        name: dto.founder.name,
+        title: dto.founder.title,
+        photo: dto.founder.photo || null,
+        tags: dto.founder.tags.map((t) => t.trim()).filter(Boolean),
+        bio: dto.founder.bio,
+      },
+      stats: dto.stats.map((x) => ({ value: x.value, label: x.label })),
+    };
+    await this.site.set(ABOUT_PAGE_KEY, value);
+    await this.audit.log(admin.sub, 'ABOUT_PAGE_UPDATE');
+    return this.aboutPage();
+  }
+
+  @Get('consult')
+  consult() {
+    return this.site.getWithMeta<ConsultConfig>(CONSULT_KEY, DEFAULT_CONSULT);
+  }
+
+  @Put('consult')
+  async saveConsult(@Body() dto: ConsultDto, @CurrentAdmin() admin: AdminTokenPayload) {
+    const value: ConsultConfig = {
+      enabled: dto.enabled,
+      title: dto.title,
+      desc: dto.desc,
+      wechatId: dto.wechatId,
+      qrImage: dto.qrImage || null,
+    };
+    await this.site.set(CONSULT_KEY, value);
+    await this.audit.log(admin.sub, 'CONSULT_UPDATE');
+    return this.consult();
   }
 }

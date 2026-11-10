@@ -15,7 +15,13 @@
       <el-table-column label="身份" width="100">
         <template #default="{ row }">{{ IdentityTypeLabel[row.identityType as IdentityType] }}</template>
       </el-table-column>
-      <el-table-column prop="organization" label="机构" min-width="160" />
+      <el-table-column label="机构" min-width="180">
+        <template #default="{ row }">
+          {{ row.organization || '—' }}<br />
+          <small>{{ [row.province, row.city, row.department || row.position].filter(Boolean).join(' · ') }}</small>
+        </template>
+      </el-table-column>
+      <el-table-column prop="phoneMasked" label="认证电话" width="130" />
       <el-table-column label="状态" width="100">
         <template #default="{ row }">
           <el-tag :type="statusTag[row.status as CertStatus]">{{ CertStatusLabel[row.status as CertStatus] }}</el-tag>
@@ -47,10 +53,14 @@
   <el-drawer v-model="drawer" title="认证详情" size="480px">
     <template v-if="detail">
       <el-descriptions :column="1" border>
-        <el-descriptions-item label="姓名">{{ detail.realName }}</el-descriptions-item>
         <el-descriptions-item label="身份">{{ IdentityTypeLabel[detail.identityType] }}</el-descriptions-item>
-        <el-descriptions-item label="证件号">{{ detail.licenseNo || '—' }}</el-descriptions-item>
+        <el-descriptions-item v-if="detail.realName" label="姓名">{{ detail.realName }}</el-descriptions-item>
+        <el-descriptions-item label="电话">{{ detail.phone || '—' }}</el-descriptions-item>
+        <el-descriptions-item v-if="detail.province" label="地区">{{ detail.province }} {{ detail.city }}</el-descriptions-item>
         <el-descriptions-item label="机构">{{ detail.organization || '—' }}</el-descriptions-item>
+        <el-descriptions-item v-if="detail.department" label="科室">{{ detail.department }}</el-descriptions-item>
+        <el-descriptions-item v-if="detail.position" label="职位">{{ detail.position }}</el-descriptions-item>
+        <el-descriptions-item v-if="detail.licenseNo" label="证件号">{{ detail.licenseNo }}</el-descriptions-item>
         <el-descriptions-item label="状态">{{ CertStatusLabel[detail.status] }}</el-descriptions-item>
         <el-descriptions-item v-if="detail.rejectReason" label="驳回原因">{{ detail.rejectReason }}</el-descriptions-item>
       </el-descriptions>

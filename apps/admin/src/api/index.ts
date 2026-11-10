@@ -11,6 +11,11 @@ export interface CertRow {
   id: string;
   identityType: IdentityType;
   organization: string | null;
+  province: string | null;
+  city: string | null;
+  department: string | null;
+  position: string | null;
+  phoneMasked: string | null;
   status: CertStatus;
   rejectReason: string | null;
   createdAt: string;
@@ -20,8 +25,10 @@ export interface CertRow {
 }
 
 export interface CertDetail extends Omit<CertRow, 'user' | 'reviewer'> {
-  realName: string;
+  realName: string | null;
+  /** 旧版申请才有证件号 */
   licenseNo: string | null;
+  phone: string | null;
   fileUrls: string[];
   user: CertRow['user'];
 }

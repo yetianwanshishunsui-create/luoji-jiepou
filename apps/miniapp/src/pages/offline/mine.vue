@@ -112,7 +112,7 @@ onPullDownRefresh(() => load().finally(() => uni.stopPullDownRefresh()));
   color: $text-secondary;
   &.DEPOSIT_PENDING,
   &.DEPOSIT_PAID {
-    color: #d4380d;
+    color: $price;
   }
   &.COMPLETED {
     color: $brand;
@@ -127,7 +127,7 @@ onPullDownRefresh(() => load().finally(() => uni.stopPullDownRefresh()));
 .due {
   margin-top: 8rpx;
   font-size: 24rpx;
-  color: #d4380d;
+  color: $price;
 }
 .actions {
   display: flex;

@@ -45,6 +45,25 @@
             <el-form-item label="可见身份" prop="visibleTo">
               <VisibleToCheckbox v-model="form.visibleTo" />
             </el-form-item>
+            <el-form-item label="关键词">
+              <el-select
+                v-model="form.keywords"
+                multiple
+                filterable
+                allow-create
+                default-first-option
+                :reserve-keyword="false"
+                :multiple-limit="8"
+                placeholder="输入后回车，如 SMAS、肉毒素；显示在详情页标题下"
+                style="width: 100%"
+              />
+            </el-form-item>
+            <el-form-item label="适用部位">
+              <el-checkbox-group v-model="form.bodyParts">
+                <el-checkbox v-for="(label, value) in BodyPartLabel" :key="value" :value="value">{{ label }}</el-checkbox>
+              </el-checkbox-group>
+              <div class="muted">用于小程序首页的部位图标入口与课程筛选</div>
+            </el-form-item>
 
             <template v-if="type === 'OFFLINE'">
               <el-form-item label="价格">
@@ -97,7 +116,7 @@
 </template>
 
 <script setup lang="ts">
-import { ProductTypeLabel, type ProductType } from '@luoji/shared';
+import { BodyPartLabel, ProductTypeLabel, type BodyPart, type ProductType } from '@luoji/shared';
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
@@ -144,6 +163,8 @@ const empty = (): ProductForm => ({
   visibleTo: ['DOCTOR', 'PRACTITIONER'],
   categoryId: null,
   sort: 0,
+  keywords: [],
+  bodyParts: [],
 });
 const form = reactive<ProductForm>(empty());
 /** 用于离开页面时判断是否有未保存的修改 */
@@ -177,6 +198,8 @@ async function load() {
       visibleTo: d.visibleTo,
       categoryId: d.categoryId,
       sort: d.sort,
+      keywords: (d.keywords as string[] | null) ?? [],
+      bodyParts: (d.bodyParts as BodyPart[] | null) ?? [],
     });
     snapshot = JSON.stringify(form);
   } finally {

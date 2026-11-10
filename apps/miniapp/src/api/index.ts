@@ -1,4 +1,16 @@
-import type { CertStatus, EnrollmentStatus, IdentityType, JoinPageConfig, LoginResult, PageResult, ProductType, UserProfile } from '@luoji/shared';
+import type {
+  AboutPageConfig,
+  BodyPart,
+  CertStatus,
+  ConsultConfig,
+  EnrollmentStatus,
+  IdentityType,
+  JoinPageConfig,
+  LoginResult,
+  PageResult,
+  ProductType,
+  UserProfile,
+} from '@luoji/shared';
 import { request } from '@/utils/request';
 
 export interface ProductCard {
@@ -17,6 +29,37 @@ export interface ProductCard {
   minDepositCent?: number | null;
   /** 价格前的说明文字（如演示版的「虚拟」），没有则不显示 */
   pricePrefix?: string | null;
+  /** 关键词标签（详情页标题下、卡片上展示） */
+  keywords?: string[] | null;
+  bodyParts?: BodyPart[] | null;
+}
+
+/** 线下会议日程中的一个场次 */
+export interface ScheduleItem {
+  id: string;
+  title: string;
+  startAt: string;
+  endAt: string;
+  address: string;
+  quota: number;
+  remaining: number;
+  product: { id: string; title: string; cover: string | null; keywords?: string[] | null };
+  /** 已加入我的计划 */
+  planned: boolean;
+  myEnrollment: { id: string; status: EnrollmentStatus } | null;
+}
+
+/** 认证提交：医生填姓名、省市、机构、科室、电话、执业证照片；从业者填电话、机构、职位，工作证照片选传 */
+export interface CertSubmit {
+  identityType: IdentityType;
+  realName?: string;
+  province?: string;
+  city?: string;
+  organization: string;
+  department?: string;
+  position?: string;
+  phone: string;
+  files: string[];
 }
 
 export interface OfflineSessionView {
@@ -161,7 +204,7 @@ export const api = {
       latest: { status: CertStatus; rejectReason: string | null } | null;
     }>({ url: '/api/v1/cert' }),
   certUploadSign: () => request<unknown>({ url: '/api/v1/cert/upload-sign', method: 'POST', silent: true }),
-  certSubmit: (data: { identityType: IdentityType; realName: string; licenseNo: string; organization: string; files: string[] }) =>
+  certSubmit: (data: CertSubmit) =>
     request<{ id: string }>({ url: '/api/v1/cert/submit', method: 'POST', data }),
 
   home: () =>
@@ -170,8 +213,10 @@ export const api = {
       silent: true,
     }),
   joinPage: () => request<JoinPageConfig>({ url: '/api/v1/site/join', silent: true }),
+  aboutPage: () => request<AboutPageConfig>({ url: '/api/v1/site/about', silent: true }),
+  consult: () => request<ConsultConfig>({ url: '/api/v1/site/consult', silent: true }),
   categories: () => request<Category[]>({ url: '/api/v1/categories' }),
-  products: (params: { page: number; pageSize: number; categoryId?: string }) =>
+  products: (params: { page: number; pageSize: number; categoryId?: string; bodyPart?: BodyPart }) =>
     request<PageResult<ProductCard>>({ url: '/api/v1/products', data: params }),
   product: (id: string) => request<ProductDetail>({ url: `/api/v1/products/${id}` }),
 
@@ -212,6 +257,10 @@ export const api = {
     request<{ orderNo: string; payCent: number }>({ url: `/api/v1/offline/enrollments/${enrollmentId}/balance`, method: 'POST' }),
   cancelEnrollment: (enrollmentId: string) => request<boolean>({ url: `/api/v1/offline/enrollments/${enrollmentId}/cancel`, method: 'POST' }),
   myEnrollments: () => request<MyEnrollment[]>({ url: '/api/v1/offline/enrollments' }),
+  schedule: (from: string, to: string) => request<ScheduleItem[]>({ url: '/api/v1/offline/schedule', data: { from, to } }),
+  plans: () => request<ScheduleItem[]>({ url: '/api/v1/offline/plans' }),
+  addPlan: (sessionId: string) => request<{ planned: boolean }>({ url: `/api/v1/offline/plans/${sessionId}`, method: 'PUT' }),
+  removePlan: (sessionId: string) => request<{ planned: boolean }>({ url: `/api/v1/offline/plans/${sessionId}`, method: 'DELETE' }),
 
   submitLead: (data: { name: string; phone: string; city?: string; organization?: string; intention?: string }) =>
     request<{ id: string }>({ url: '/api/v1/leads', method: 'POST', data }),

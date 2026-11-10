@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { ErrorCode, homeSlotsKey, PricingMode, type HomeSlotsConfig, type IdentityType, type PageResult } from '@luoji/shared';
+import { ErrorCode, homeSlotsKey, type BodyPart, PricingMode, type HomeSlotsConfig, type IdentityType, type PageResult } from '@luoji/shared';
 import type { PriceRule, Prisma, ProductType } from '@prisma/client';
 import { BizException } from '../../common/exceptions/biz.exception';
 import { isVisibleTo, visibleFor } from '../../common/visibility';
@@ -25,6 +25,8 @@ const cardSelect = () =>
     pricingMode: true,
     priceCent: true,
     originCent: true,
+    keywords: true,
+    bodyParts: true,
     priceRules: { where: { enabled: true } },
     sessions: { where: { enabled: true, startAt: { gt: new Date() } }, select: { depositCent: true } },
   }) satisfies Prisma.ProductSelect;
@@ -98,13 +100,14 @@ export class CatalogService {
 
   async list(
     identity: IdentityType,
-    q: { page: number; pageSize: number; categoryId?: string; type?: ProductType },
+    q: { page: number; pageSize: number; categoryId?: string; type?: ProductType; bodyPart?: BodyPart },
   ): Promise<PageResult<unknown>> {
     const where: Prisma.ProductWhereInput = {
       status: 'ONLINE',
       visibleTo: visibleFor(identity),
       ...(q.type && { type: q.type }),
       ...(q.categoryId && { OR: [{ categoryId: q.categoryId }, { category: { parentId: q.categoryId } }] }),
+      ...(q.bodyPart && { bodyParts: { array_contains: q.bodyPart } }),
     };
     const [rows, total] = await Promise.all([
       this.prisma.product.findMany({

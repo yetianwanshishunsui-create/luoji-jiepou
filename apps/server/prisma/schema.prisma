@@ -151,6 +151,7 @@ model User {
   userCoupons    UserCoupon[]
   enrollments    Enrollment[]
   reviews        ProductReview[]
+  offlinePlans   OfflinePlan[]
 
   @@index([certStatus])
   @@map("users")
@@ -161,11 +162,20 @@ model Certification {
   id            String       @id @default(cuid())
   userId        String       @map("user_id")
   identityType  IdentityType @map("identity_type")
-  realNameEnc   String       @map("real_name_enc") @db.VarChar(255)
+  /// 医生必填；从业者不填
+  realNameEnc   String?      @map("real_name_enc") @db.VarChar(255)
   licenseNoEnc  String?      @map("license_no_enc") @db.VarChar(255)
   licenseNoHash String?      @map("license_no_hash") @db.VarChar(64)
   organization  String?      @db.VarChar(128)
-  /// COS 私有桶对象 key 列表
+  province      String?      @db.VarChar(16)
+  city          String?      @db.VarChar(32)
+  /// 医生：科室
+  department    String?      @db.VarChar(64)
+  /// 从业者：职位
+  position      String?      @db.VarChar(64)
+  phoneEnc      String?      @map("phone_enc") @db.VarChar(255)
+  phoneMasked   String?      @map("phone_masked") @db.VarChar(20)
+  /// COS 私有桶对象 key 列表（医生执业证照片必传；从业者工作证 / 胸牌选传）
   files         Json
   status        CertStatus   @default(PENDING)
   rejectReason  String?      @map("reject_reason") @db.VarChar(255)
@@ -217,6 +227,10 @@ model Product {
   /// 划线价
   originCent  Int?          @map("origin_cent")
   visibleTo   Json          @map("visible_to")
+  /// 关键词标签，详情页标题下展示，例如 ["SMAS","肉毒素","并发症规避"]
+  keywords    Json?
+  /// 适用部位（BodyPart），首页部位图标与课程筛选
+  bodyParts   Json?         @map("body_parts")
   status      PublishStatus @default(DRAFT)
   sort        Int           @default(0)
   categoryId  String?       @map("category_id")
@@ -452,8 +466,9 @@ model OfflineSession {
   balanceDueAt DateTime @map("balance_due_at")
   enabled      Boolean  @default(true)
 
-  product     Product      @relation(fields: [productId], references: [id])
+  product     Product       @relation(fields: [productId], references: [id])
   enrollments Enrollment[]
+  plans       OfflinePlan[]
 
   @@index([productId, startAt])
   @@map("offline_sessions")
@@ -482,6 +497,20 @@ model Enrollment {
   @@index([userId])
   @@index([sessionId, status])
   @@map("enrollments")
+}
+
+/// 学员加入「我的计划」的线下场次（已报名的场次自动算入计划，不必写入本表）
+model OfflinePlan {
+  userId    String   @map("user_id")
+  sessionId String   @map("session_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user    User           @relation(fields: [userId], references: [id])
+  session OfflineSession @relation(fields: [sessionId], references: [id])
+
+  @@id([userId, sessionId])
+  @@index([sessionId])
+  @@map("offline_plans")
 }
 
 /// 学习权益：“能看什么”与“买了什么”解耦，二期分销 / 兑换码 / 赠课只需写入本表

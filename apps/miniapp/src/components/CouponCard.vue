@@ -80,7 +80,7 @@ const validText = computed(() =>
 .note {
   margin-top: 8rpx;
   font-size: 22rpx;
-  color: #d4380d;
+  color: $price;
 }
 .action {
   display: flex;

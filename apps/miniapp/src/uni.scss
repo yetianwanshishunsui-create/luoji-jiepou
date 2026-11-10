@@ -1,8 +1,14 @@
-/* 全局 SCSS 变量：取自「逻辑解剖」品牌蓝（品牌手册 / 课程海报），WP02 设计确认后微调 */
+/* 全局 SCSS 变量：淡蓝渐变为底，品牌蓝点睛；WP02 设计确认后微调 */
 $brand: #2a5bd7;
-$brand-deep: #1b3f9e;
-$brand-light: #ebf1fd;
-$text: #1c2333;
-$text-secondary: #6b7385;
-$bg: #f4f6fa;
-$radius: 16rpx;
+$brand-deep: #14306f;
+$brand-light: #eaf1ff;
+$brand-soft: #f3f7ff;
+$brand-grad: linear-gradient(135deg, #4a80f5 0%, #2a5bd7 100%);
+$text: #16213a;
+$text-secondary: #67718a;
+$text-weak: #9aa3b7;
+$line: #edf1f8;
+$bg: #f5f8fd;
+$radius: 24rpx;
+$shadow: 0 10rpx 36rpx rgba(42, 91, 215, 0.07);
+$price: #e0482b;

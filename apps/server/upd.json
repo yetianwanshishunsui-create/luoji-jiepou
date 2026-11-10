@@ -1,0 +1,24 @@
+{
+  "title": "逻辑解剖入门（演示）",
+  "subtitle": "演示数据，可在后台删除",
+  "cover": null,
+  "detailHtml": null,
+  "pricingMode": "PAID",
+  "priceCent": 19900,
+  "originCent": null,
+  "visibleTo": [
+    "DOCTOR",
+    "PRACTITIONER"
+  ],
+  "categoryId": "demo-cat-replay",
+  "sort": 0,
+  "keywords": [
+    "鼻部",
+    "栓塞",
+    "急救"
+  ],
+  "bodyParts": [
+    "NOSE",
+    "MIDFACE"
+  ]
+}

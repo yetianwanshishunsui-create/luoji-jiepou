@@ -1,8 +1,8 @@
-import { Body, Controller, Get, HttpCode, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Transform } from 'class-transformer';
-import { IsMobilePhone, IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import { IsISO8601, IsMobilePhone, IsNotEmpty, IsString, MaxLength } from 'class-validator';
 import type { IdentityType } from '@luoji/shared';
 import { CurrentUser, type UserTokenPayload } from '../../common/decorators/current-user.decorator';
 import { RequireCert } from '../../common/decorators/require-cert.decorator';
@@ -19,6 +19,14 @@ class EnrollDto {
 
   @IsMobilePhone('zh-CN', {}, { message: '手机号格式不正确' })
   phone: string;
+}
+
+class ScheduleQueryDto {
+  @IsISO8601({}, { message: '开始日期格式不正确' })
+  from: string;
+
+  @IsISO8601({}, { message: '结束日期格式不正确' })
+  to: string;
 }
 
 @ApiTags('小程序 · 线下课报名')
@@ -61,5 +69,27 @@ export class OfflineController {
   @Get('enrollments')
   mine(@CurrentUser() user: UserTokenPayload) {
     return this.offline.mine(user.sub);
+  }
+
+  /** 线下会议日程（平台排期） */
+  @Get('schedule')
+  schedule(@CurrentUser() user: UserTokenPayload, @Req() req: { identityType: IdentityType }, @Query() q: ScheduleQueryDto) {
+    return this.offline.schedule(user.sub, req.identityType, new Date(q.from), new Date(q.to));
+  }
+
+  /** 我的计划（含已报名场次） */
+  @Get('plans')
+  plans(@CurrentUser() user: UserTokenPayload, @Req() req: { identityType: IdentityType }) {
+    return this.offline.plans(user.sub, req.identityType);
+  }
+
+  @Put('plans/:sessionId')
+  addPlan(@CurrentUser() user: UserTokenPayload, @Req() req: { identityType: IdentityType }, @Param('sessionId') sessionId: string) {
+    return this.offline.addPlan(user.sub, req.identityType, sessionId);
+  }
+
+  @Delete('plans/:sessionId')
+  removePlan(@CurrentUser() user: UserTokenPayload, @Param('sessionId') sessionId: string) {
+    return this.offline.removePlan(user.sub, sessionId);
   }
 }

@@ -4,7 +4,7 @@
  */
 import { ErrorCode } from '@luoji/shared';
 import type { CertStatus, EnrollmentStatus, IdentityType, UserProfile } from '@luoji/shared';
-import { BANNERS, CATEGORIES, COUPONS, HOME_SECTIONS, JOIN_PAGE, PRODUCTS, REVIEWS, type DemoProduct } from './data';
+import { ABOUT_PAGE, BANNERS, CATEGORIES, CONSULT, COUPONS, HOME_SECTIONS, JOIN_PAGE, PRODUCTS, REVIEWS, type DemoProduct } from './data';
 
 const KEY = 'luoji_demo_state';
 const PAY_TIMEOUT = 30 * 60_000;
@@ -69,6 +69,8 @@ interface State {
   leads: number;
   /** 本人写的评价，每门课一条 */
   reviews: MyReview[];
+  /** 加入「我的计划」的线下场次 */
+  plans: string[];
 }
 
 function fresh(): State {
@@ -83,6 +85,7 @@ function fresh(): State {
     enrollments: [],
     leads: 0,
     reviews: [],
+    plans: [],
   };
 }
 
@@ -93,6 +96,7 @@ function load(): State {
   const saved = uni.getStorageSync(KEY) as State | '';
   state = saved && saved.t0 ? saved : fresh();
   state.reviews ??= [];
+  state.plans ??= [];
   return state;
 }
 
@@ -200,7 +204,33 @@ function card(s: State, p: DemoProduct) {
     priceRule: rule ? { type: rule.type, endAt: iso(rule.endAt) } : null,
     minDepositCent: cheapest ? cheapest.depositCent : p.type === 'OFFLINE' ? null : undefined,
     pricePrefix: (cheapest ? cheapest.pricePrefix : p.pricePrefix) ?? null,
+    keywords: p.keywords ?? [],
+    bodyParts: p.bodyParts ?? [],
   };
+}
+
+/** 线下会议日程的一条：场次 + 课程 + 我的计划 / 报名状态 */
+function scheduleItem(s: State, p: DemoProduct, x: ReturnType<typeof sessionsOf>[number]) {
+  const mine = s.enrollments.filter((e) => e.sessionId === x.id && ACTIVE.includes(e.status));
+  return {
+    id: x.id,
+    title: x.title,
+    startAt: iso(x.startAt),
+    endAt: iso(x.endAt),
+    address: x.address,
+    quota: x.quota,
+    remaining: Math.max(0, x.quota - x.taken - mine.length),
+    product: { id: p.id, title: p.title, cover: p.cover, keywords: p.keywords ?? [] },
+    planned: s.plans.includes(x.id),
+    myEnrollment: mine[0] ? { id: mine[0].id, status: mine[0].status } : null,
+  };
+}
+
+function allSessions(s: State, identity: IdentityType) {
+  return visibleProducts(identity)
+    .filter((p) => p.type === 'OFFLINE')
+    .flatMap((p) => sessionsOf(s, p).map((x) => ({ p, x })))
+    .sort((a, b) => a.x.startAt - b.x.startAt);
 }
 
 /** 是否拥有学习权限：免费课程、已购课程、已购专栏 / 系列中的课程 */
@@ -344,10 +374,16 @@ const routes: [string, RegExp, Handler][] = [
     /^\/api\/v1\/cert\/submit$/,
     (s, d) => {
       if (s.user.certStatus === 'PENDING' || s.user.certStatus === 'APPROVED') fail(ErrorCode.CERT_STATE_INVALID, '当前状态不能重复提交');
-      if (!String(d.licenseNo ?? '').trim()) fail(ErrorCode.BAD_REQUEST, '请填写执业证号 / 资格证号');
-      if (!String(d.organization ?? '').trim()) fail(ErrorCode.BAD_REQUEST, '请填写所在医院 / 机构');
+      const doctor = d.identityType === 'DOCTOR';
+      const missing = (doctor
+        ? [['realName', '姓名'], ['province', '省份'], ['city', '城市'], ['organization', '机构'], ['department', '科室']]
+        : [['organization', '机构'], ['position', '职位']]
+      ).filter(([k]) => !String(d[k] ?? '').trim());
+      if (missing.length) fail(ErrorCode.BAD_REQUEST, `请填写${missing.map(([, label]) => label).join('、')}`);
+      if (!/^1\d{10}$/.test(String(d.phone ?? ''))) fail(ErrorCode.BAD_REQUEST, '请填写正确的手机号');
+      if (doctor && !(d.files as unknown[] | undefined)?.length) fail(ErrorCode.BAD_REQUEST, '请上传执业证照片');
       s.user.identityType = d.identityType as IdentityType;
-      s.user.nickname = String(d.realName || '演示学员');
+      s.user.nickname = String(d.realName || (doctor ? '演示学员' : `${String(d.organization).slice(0, 8)} · ${d.position}`));
       s.user.certStatus = 'PENDING';
       s.user.submittedAt = Date.now();
       return { id: nextId(s, 'cert') };
@@ -369,6 +405,51 @@ const routes: [string, RegExp, Handler][] = [
     },
   ],
   ['GET', /^\/api\/v1\/site\/join$/, () => JOIN_PAGE],
+  ['GET', /^\/api\/v1\/site\/about$/, () => ABOUT_PAGE],
+  ['GET', /^\/api\/v1\/site\/consult$/, () => CONSULT],
+  [
+    'GET',
+    /^\/api\/v1\/offline\/schedule$/,
+    (s, d) => {
+      const identity = requireCert(s);
+      const from = Date.parse(String(d.from));
+      const to = Date.parse(String(d.to));
+      if (!(from < to) || to - from > 62 * 86_400_000) fail(ErrorCode.BAD_REQUEST, '日期范围不正确（最多 62 天）');
+      return allSessions(s, identity)
+        .filter(({ x }) => x.startAt < to && x.endAt >= from)
+        .map(({ p, x }) => scheduleItem(s, p, x));
+    },
+  ],
+  [
+    'GET',
+    /^\/api\/v1\/offline\/plans$/,
+    (s) => {
+      const identity = requireCert(s);
+      const enrolled = new Set(s.enrollments.filter((e) => ACTIVE.includes(e.status)).map((e) => e.sessionId));
+      return allSessions(s, identity)
+        .filter(({ x }) => x.endAt >= Date.now() && (s.plans.includes(x.id) || enrolled.has(x.id)))
+        .map(({ p, x }) => scheduleItem(s, p, x));
+    },
+  ],
+  [
+    'PUT',
+    /^\/api\/v1\/offline\/plans\/([\w-]+)$/,
+    (s, _d, [id]) => {
+      requireCert(s);
+      if (!PRODUCTS.some((p) => p.sessions?.some((x) => x.id === id))) fail(ErrorCode.NOT_FOUND, '场次不存在', 404);
+      if (!s.plans.includes(id)) s.plans.push(id);
+      return { planned: true };
+    },
+  ],
+  [
+    'DELETE',
+    /^\/api\/v1\/offline\/plans\/([\w-]+)$/,
+    (s, _d, [id]) => {
+      requireCert(s);
+      s.plans = s.plans.filter((x) => x !== id);
+      return { planned: false };
+    },
+  ],
   ['GET', /^\/api\/v1\/categories$/, (s) => (requireCert(s), CATEGORIES)],
   [
     'GET',
@@ -377,8 +458,10 @@ const routes: [string, RegExp, Handler][] = [
       const identity = requireCert(s);
       const cat = d.categoryId as string | undefined;
       const ids = cat ? [cat, ...(CATEGORIES.find((c) => c.id === cat)?.children.map((c) => c.id) ?? [])] : null;
+      const part = d.bodyPart as string | undefined;
       const list = visibleProducts(identity)
         .filter((p) => !ids || ids.includes(p.categoryId))
+        .filter((p) => !part || (p.bodyParts as string[] | undefined)?.includes(part))
         .map((p) => card(s, p));
       return { list, total: list.length, page: 1, pageSize: list.length };
     },

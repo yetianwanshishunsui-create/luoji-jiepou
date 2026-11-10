@@ -2,7 +2,7 @@ import { Controller, Get, Param, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsIn, IsOptional, IsString } from 'class-validator';
-import type { IdentityType } from '@luoji/shared';
+import { BodyPart, type IdentityType } from '@luoji/shared';
 import { CurrentUser, type UserTokenPayload } from '../../common/decorators/current-user.decorator';
 import { RequireCert } from '../../common/decorators/require-cert.decorator';
 import { PageQueryDto } from '../../common/dto/page.dto';
@@ -19,6 +19,10 @@ class ProductQueryDto extends PageQueryDto {
   @Type(() => String)
   @IsIn(['COURSE', 'COLUMN', 'SERIES', 'OFFLINE'])
   type?: 'COURSE' | 'COLUMN' | 'SERIES' | 'OFFLINE';
+
+  @IsOptional()
+  @IsIn(Object.values(BodyPart))
+  bodyPart?: BodyPart;
 }
 
 type CertedRequest = { identityType: IdentityType };

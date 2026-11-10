@@ -1,4 +1,5 @@
 import type {
+  BodyPart,
   AdminRole,
   CertStatus,
   EnrollmentStatus,
@@ -78,3 +79,21 @@ export const AdminRoleLabel: Record<AdminRole, string> = {
   REVIEWER: '审核员',
   FINANCE: '财务',
 };
+
+export const BodyPartLabel: Record<BodyPart, string> = {
+  FOREHEAD: '额颞部',
+  EYE: '眼周',
+  NOSE: '鼻部',
+  MIDFACE: '面中部',
+  LIP: '口周',
+  JAW: '下颌轮廓',
+  NECK: '颈部',
+  FULLFACE: '全面部',
+};
+
+/** 认证填写用的省级行政区 */
+export const PROVINCES = [
+  '北京', '天津', '河北', '山西', '内蒙古', '辽宁', '吉林', '黑龙江', '上海', '江苏', '浙江', '安徽',
+  '福建', '江西', '山东', '河南', '湖北', '湖南', '广东', '广西', '海南', '重庆', '四川', '贵州',
+  '云南', '西藏', '陕西', '甘肃', '青海', '宁夏', '新疆', '香港', '澳门', '台湾',
+] as const;

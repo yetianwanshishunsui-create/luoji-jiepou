@@ -1,12 +1,19 @@
 <template>
   <view v-if="product" class="page">
-    <image v-if="product.cover" :src="product.cover" mode="aspectFill" class="hero" />
-    <view class="card">
+    <view class="hero-box">
+      <image v-if="product.cover" :src="product.cover" mode="aspectFill" class="hero" />
+    </view>
+
+    <!-- 1. 课程名称 + 关键词 + 价格 -->
+    <view class="card head">
       <view class="title">{{ product.title }}</view>
+      <view v-if="product.keywords?.length" class="kws">
+        <text v-for="k in product.keywords" :key="k" class="kw"># {{ k }}</text>
+      </view>
       <view v-if="product.subtitle" class="muted sub">{{ product.subtitle }}</view>
       <view v-if="product.type === 'OFFLINE'" class="price-row">
+        <text v-if="product.minDepositCent != null" class="price big">定金 {{ money(product.minDepositCent, product.pricePrefix) }} 起</text>
         <text class="offline-tag">线下课</text>
-        <text v-if="product.minDepositCent != null" class="price">定金 {{ money(product.minDepositCent, product.pricePrefix) }} 起</text>
       </view>
       <view v-else class="price-row">
         <text v-if="product.pricingMode === 'FREE'" class="free">免费</text>
@@ -22,38 +29,67 @@
       </view>
     </view>
 
-    <!-- 学员评价：免费课程不开放评价 -->
-    <ReviewSection v-if="product.pricingMode !== 'FREE'" :product-id="product.id" :refresh-key="showCount" />
+    <!-- 引导加微信（一）：提示条 -->
+    <ConsultCard variant="strip" />
+
+    <!-- 2. 场次选择（线下课）/ 课程目录（线上课） -->
+    <view id="sessions">
+      <OfflineSessions v-if="product.type === 'OFFLINE'" :product-id="product.id" :refresh-key="showCount">
+        <template #left>
+          <view class="bar-consult" @click="consultSheet?.show()">
+            <view class="bar-icon">微</view>
+            <text>顾问</text>
+          </view>
+        </template>
+      </OfflineSessions>
+    </view>
 
     <view v-if="product.items.length" class="card">
-      <view class="section-title">包含课程</view>
-      <view v-for="it in product.items" :key="it.id" class="row" @click="openProduct(it.id)">{{ it.title }}</view>
+      <view class="sec-head"><view><text class="sec-title">包含课程</text><text class="sec-en">Contents</text></view></view>
+      <view v-for="it in product.items" :key="it.id" class="row item-row" @click="openProduct(it.id)">
+        <text class="item-title">{{ it.title }}</text>
+        <text class="muted">›</text>
+      </view>
     </view>
 
     <view v-if="product.chapters.length" class="card">
-      <view class="section-title">课程目录</view>
+      <view class="sec-head"><view><text class="sec-title">课程目录</text><text class="sec-en">Syllabus</text></view></view>
       <view v-for="ch in product.chapters" :key="ch.id">
         <view class="chapter">{{ ch.title }}</view>
         <view v-for="l in ch.lessons" :key="l.id" class="row lesson" @click="play(l)">
           <text class="type">{{ typeLabel[l.type] }}</text>
           <text class="lesson-title">{{ l.title }}</text>
           <text v-if="!product.owned && l.isTrial" class="trial">{{ l.trialSeconds ? '试看' : '免费' }}</text>
-          <text v-else-if="!product.owned" class="lock">🔒</text>
+          <text v-else-if="!product.owned" class="lock">未解锁</text>
           <text v-else-if="l.duration" class="muted">{{ duration(l.duration) }}</text>
         </view>
       </view>
     </view>
 
-    <OfflineSessions v-if="product.type === 'OFFLINE'" :product-id="product.id" :refresh-key="showCount" />
-
+    <!-- 3. 课程详情 -->
     <view v-if="product.detailHtml" class="card">
-      <view class="section-title">课程介绍</view>
+      <view class="sec-head"><view><text class="sec-title">课程详情</text><text class="sec-en">Details</text></view></view>
       <rich-text :nodes="product.detailHtml" />
     </view>
 
-    <view v-if="!product.owned && product.type !== 'OFFLINE'" class="bar">
-      <button class="btn-primary" :loading="opening" @click="openCheckout">立即购买 {{ money(product.currentPriceCent, product.pricePrefix) }}</button>
+    <!-- 引导加微信（二）：二维码卡片 -->
+    <ConsultCard variant="full" />
+
+    <!-- 4. 学员评价：免费课程不开放评价 -->
+    <ReviewSection v-if="product.pricingMode !== 'FREE'" :product-id="product.id" :refresh-key="showCount" />
+
+    <!-- 底部操作栏：左侧顾问入口，右侧购买 / 学习（线下课的报名栏在场次组件里） -->
+    <view v-if="product.type !== 'OFFLINE'" class="bar">
+      <view class="bar-consult" @click="consultSheet?.show()">
+        <view class="bar-icon">微</view>
+        <text>顾问</text>
+      </view>
+      <button v-if="!product.owned" class="btn-primary bar-btn" :loading="opening" @click="openCheckout">
+        立即购买 {{ money(product.currentPriceCent, product.pricePrefix) }}
+      </button>
+      <button v-else class="btn-primary bar-btn" @click="startLearning">{{ product.pricingMode === 'FREE' ? '开始学习' : '继续学习' }}</button>
     </view>
+    <ConsultCard ref="consultSheet" variant="sheet" />
 
     <!-- 结算面板 -->
     <view v-if="checkout" class="mask" @click="checkout = null" />
@@ -108,6 +144,7 @@
 import { onLoad, onShow } from '@dcloudio/uni-app';
 import { computed, ref } from 'vue';
 import { api, type CheckoutPreview, type LessonBrief, type ProductDetail } from '@/api';
+import ConsultCard from '@/components/ConsultCard.vue';
 import OfflineSessions from '@/components/OfflineSessions.vue';
 import ReviewSection from '@/components/ReviewSection.vue';
 import { useCountdown } from '@/utils/countdown';
@@ -157,6 +194,15 @@ function play(l: LessonBrief) {
 
 const openProduct = (pid: string) => uni.navigateTo({ url: `/pages/course/detail?id=${pid}` });
 
+const consultSheet = ref<InstanceType<typeof ConsultCard>>();
+
+/** 已购 / 免费：进入第一个课时；专栏、系列没有课时时滚到包含课程 */
+function startLearning() {
+  const first = product.value?.chapters.flatMap((c) => c.lessons)[0];
+  if (first) play(first);
+  else uni.pageScrollTo({ selector: '#sessions', duration: 300 });
+}
+
 /**
  * 下单 → 获取支付参数 → wx.requestPayment。
  * 支付接口在商户号开通后接入（WP06）；iOS 虚拟支付策略待平台规则确认（技术方案第 9 节）。
@@ -193,15 +239,32 @@ onShow(() => {
 
 <style lang="scss" scoped>
 .page {
-  padding-bottom: 160rpx;
+  padding-bottom: calc(160rpx + env(safe-area-inset-bottom));
+}
+.hero-box {
+  padding: 20rpx 28rpx 0;
 }
 .hero {
+  display: block;
   width: 100%;
-  height: 420rpx;
+  height: 462rpx;
+  border-radius: $radius;
+  box-shadow: 0 16rpx 40rpx rgba(20, 48, 111, 0.14);
+}
+.head {
+  margin-top: -40rpx;
+  position: relative;
+  margin-left: 44rpx;
+  margin-right: 44rpx;
 }
 .title {
   font-size: 36rpx;
   font-weight: 600;
+  line-height: 1.45;
+}
+.kws {
+  margin-top: 18rpx;
+  margin-bottom: -12rpx;
 }
 .sub {
   margin-top: 12rpx;
@@ -216,11 +279,23 @@ onShow(() => {
   font-size: 40rpx;
 }
 .offline-tag {
-  padding: 2rpx 12rpx;
-  border-radius: 6rpx;
+  padding: 2rpx 14rpx;
+  border-radius: 999rpx;
   background: $brand-light;
   color: $brand;
-  font-size: 24rpx;
+  font-size: 22rpx;
+}
+.item-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+.item-title {
+  flex: 1;
+}
+.lock {
+  font-size: 22rpx;
+  color: $text-weak;
 }
 .rule {
   margin-top: 16rpx;
@@ -228,12 +303,12 @@ onShow(() => {
   align-items: center;
   gap: 12rpx;
   font-size: 24rpx;
-  color: #d4380d;
+  color: $price;
 }
 .rule-tag {
   padding: 2rpx 12rpx;
   border-radius: 6rpx;
-  background: #d4380d;
+  background: $price;
   color: #fff;
 }
 .mask {
@@ -262,10 +337,10 @@ onShow(() => {
   display: flex;
   justify-content: space-between;
   padding: 20rpx 0;
-  border-bottom: 1rpx solid #f0f2f1;
+  border-bottom: 1rpx solid $line;
 }
 .minus {
-  color: #d4380d;
+  color: $price;
 }
 .coupon-list {
   max-height: 420rpx;
@@ -309,18 +384,14 @@ onShow(() => {
   text-decoration: line-through;
   font-size: 24rpx;
 }
-.section-title {
-  font-size: 30rpx;
-  font-weight: 600;
-  margin-bottom: 12rpx;
-}
 .chapter {
-  margin-top: 16rpx;
-  font-weight: 500;
+  margin-top: 20rpx;
+  font-weight: 600;
+  color: $brand-deep;
 }
 .row {
-  padding: 20rpx 0;
-  border-bottom: 1rpx solid #f0f2f1;
+  padding: 22rpx 0;
+  border-bottom: 1rpx solid $line;
 }
 .lesson {
   display: flex;
@@ -346,8 +417,35 @@ onShow(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 20rpx 32rpx calc(20rpx + env(safe-area-inset-bottom));
-  background: #fff;
-  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.04);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 28rpx;
+  padding: 18rpx 32rpx calc(18rpx + env(safe-area-inset-bottom));
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 -6rpx 24rpx rgba(20, 48, 111, 0.06);
+}
+.bar-consult {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 20rpx;
+  color: $text-secondary;
+  gap: 4rpx;
+}
+.bar-icon {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 14rpx;
+  background: #07c160;
+  color: #fff;
+  font-size: 22rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.bar-btn {
+  flex: 1;
+  margin: 0;
 }
 </style>

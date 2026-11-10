@@ -241,6 +241,8 @@ export class AdminProductService {
       visibleTo: dto.visibleTo,
       categoryId: dto.categoryId || null,
       sort: dto.sort ?? 0,
+      keywords: [...new Set((dto.keywords ?? []).map((k) => k.trim()).filter(Boolean))],
+      bodyParts: dto.bodyParts ?? [],
     };
   }
 
