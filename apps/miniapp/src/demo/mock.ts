@@ -71,6 +71,8 @@ interface State {
   reviews: MyReview[];
   /** 加入「我的计划」的线下场次 */
   plans: string[];
+  /** 收藏的课程，最近收藏在前 */
+  favorites: string[];
 }
 
 function fresh(): State {
@@ -86,6 +88,7 @@ function fresh(): State {
     leads: 0,
     reviews: [],
     plans: [],
+    favorites: [],
   };
 }
 
@@ -97,6 +100,7 @@ function load(): State {
   state = saved && saved.t0 ? saved : fresh();
   state.reviews ??= [];
   state.plans ??= [];
+  state.favorites ??= [];
   return state;
 }
 
@@ -406,6 +410,36 @@ const routes: [string, RegExp, Handler][] = [
   ],
   ['GET', /^\/api\/v1\/site\/join$/, () => JOIN_PAGE],
   ['GET', /^\/api\/v1\/site\/about$/, () => ABOUT_PAGE],
+  [
+    'GET',
+    /^\/api\/v1\/me\/favorites$/,
+    (s) => {
+      const identity = requireCert(s);
+      return s.favorites
+        .map(findProduct)
+        .filter((p) => p.visibleTo.includes(identity))
+        .map((p) => card(s, p));
+    },
+  ],
+  [
+    'PUT',
+    /^\/api\/v1\/products\/([\w-]+)\/favorite$/,
+    (s, _d, [id]) => {
+      const identity = requireCert(s);
+      if (!findProduct(id).visibleTo.includes(identity)) fail(ErrorCode.CONTENT_NOT_VISIBLE, '该课程暂未对你的身份开放', 403);
+      s.favorites = [id, ...s.favorites.filter((x) => x !== id)];
+      return { favorited: true };
+    },
+  ],
+  [
+    'DELETE',
+    /^\/api\/v1\/products\/([\w-]+)\/favorite$/,
+    (s, _d, [id]) => {
+      requireCert(s);
+      s.favorites = s.favorites.filter((x) => x !== id);
+      return { favorited: false };
+    },
+  ],
   ['GET', /^\/api\/v1\/site\/consult$/, () => CONSULT],
   [
     'GET',
@@ -477,6 +511,7 @@ const routes: [string, RegExp, Handler][] = [
         ...card(s, p),
         detailHtml: p.detailHtml,
         owned: owns(s, p),
+        favorited: s.favorites.includes(p.id),
         chapters: p.chapters.map((ch) => ({ id: ch.id, title: ch.title, lessons: ch.lessons.map(({ contentHtml: _c, ...l }) => l) })),
         items: (p.items ?? []).map(findProduct).map((x) => ({ id: x.id, title: x.title, cover: x.cover, type: x.type })),
       };

@@ -152,6 +152,7 @@ model User {
   enrollments    Enrollment[]
   reviews        ProductReview[]
   offlinePlans   OfflinePlan[]
+  favorites      ProductFavorite[]
 
   @@index([certStatus])
   @@map("users")
@@ -237,16 +238,17 @@ model Product {
   createdAt   DateTime      @default(now()) @map("created_at")
   updatedAt   DateTime      @updatedAt @map("updated_at")
 
-  category     Category?        @relation(fields: [categoryId], references: [id])
+  category     Category?         @relation(fields: [categoryId], references: [id])
   chapters     Chapter[]
   priceRules   PriceRule[]
   sessions     OfflineSession[]
   orderItems   OrderItem[]
   entitlements Entitlement[]
   /// 专栏 / 系列包含的子产品
-  children     ProductItem[]    @relation("ParentProduct")
-  parents      ProductItem[]    @relation("ChildProduct")
+  children     ProductItem[]     @relation("ParentProduct")
+  parents      ProductItem[]     @relation("ChildProduct")
   reviews      ProductReview[]
+  favorites    ProductFavorite[]
 
   @@index([status, type, sort])
   @@index([categoryId])
@@ -497,6 +499,21 @@ model Enrollment {
   @@index([userId])
   @@index([sessionId, status])
   @@map("enrollments")
+}
+
+/// 课程收藏
+model ProductFavorite {
+  userId    String   @map("user_id")
+  productId String   @map("product_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user    User    @relation(fields: [userId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@id([userId, productId])
+  @@index([userId, createdAt])
+  @@index([productId])
+  @@map("product_favorites")
 }
 
 /// 学员加入「我的计划」的线下场次（已报名的场次自动算入计划，不必写入本表）

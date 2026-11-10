@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, Req, UseGuards } from '@nestjs/common';
+import { Controller, Delete, Get, Param, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsIn, IsOptional, IsString } from 'class-validator';
@@ -49,6 +49,21 @@ export class CatalogController {
   @Get('products')
   products(@Req() req: CertedRequest, @Query() q: ProductQueryDto) {
     return this.catalog.list(req.identityType, q);
+  }
+
+  @Get('me/favorites')
+  favorites(@Req() req: CertedRequest, @CurrentUser() user: UserTokenPayload) {
+    return this.catalog.favorites(req.identityType, user.sub);
+  }
+
+  @Put('products/:id/favorite')
+  favorite(@Req() req: CertedRequest, @CurrentUser() user: UserTokenPayload, @Param('id') id: string) {
+    return this.catalog.setFavorite(req.identityType, user.sub, id, true);
+  }
+
+  @Delete('products/:id/favorite')
+  unfavorite(@Req() req: CertedRequest, @CurrentUser() user: UserTokenPayload, @Param('id') id: string) {
+    return this.catalog.setFavorite(req.identityType, user.sub, id, false);
   }
 
   @Get('products/:id')

@@ -1,16 +1,7 @@
 <template>
-  <!-- 课程顾问：引导学员添加微信。strip 为一行提示条，full 为带二维码的卡片；点击都会弹出二维码面板 -->
+  <!-- 课程顾问：引导学员添加微信，点击弹出二维码面板 -->
   <template v-if="config?.enabled">
-    <view v-if="variant === 'strip'" class="strip" @click="open = true">
-      <view class="strip-icon">微</view>
-      <view class="strip-text">
-        <text class="strip-title">{{ config.title }}</text>
-        <text class="strip-desc">{{ config.desc }}</text>
-      </view>
-      <text class="strip-go">加微信</text>
-    </view>
-
-    <view v-else-if="variant === 'full'" class="card full">
+    <view class="card full">
       <view class="full-text">
         <view class="full-title">{{ config.title }}</view>
         <view class="muted">{{ config.desc }}</view>
@@ -49,9 +40,7 @@ import type { ConsultConfig } from '@luoji/shared';
 import { onMounted, ref } from 'vue';
 import { api } from '@/api';
 
-defineProps<{ variant: 'strip' | 'full' | 'sheet' }>();
-
-/** 顾问配置全局只取一次，详情页里多处共用 */
+/** 顾问配置全局只取一次，各课程详情页共用 */
 let cached: Promise<ConsultConfig> | null = null;
 const config = ref<ConsultConfig>();
 const open = ref(false);
@@ -65,57 +54,9 @@ onMounted(async () => {
 });
 
 const copy = () => uni.setClipboardData({ data: config.value?.wechatId ?? '', success: () => uni.showToast({ title: '已复制，去微信添加', icon: 'none' }) });
-
-/** 供底部「顾问」按钮直接打开面板 */
-defineExpose({ show: () => (open.value = true) });
 </script>
 
 <style lang="scss" scoped>
-.strip {
-  display: flex;
-  align-items: center;
-  gap: 20rpx;
-  margin: 0 28rpx;
-  padding: 20rpx 24rpx;
-  border-radius: 20rpx;
-  background: linear-gradient(100deg, #e9f8f0, #f3fbf7);
-  border: 1rpx solid #cdeedd;
-}
-.strip-icon {
-  width: 56rpx;
-  height: 56rpx;
-  border-radius: 16rpx;
-  background: #07c160;
-  color: #fff;
-  font-size: 26rpx;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.strip-text {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-.strip-title {
-  font-size: 26rpx;
-  font-weight: 600;
-  color: #0d5c36;
-}
-.strip-desc {
-  font-size: 22rpx;
-  color: #4f7d66;
-}
-.strip-go {
-  flex-shrink: 0;
-  padding: 8rpx 22rpx;
-  border-radius: 999rpx;
-  background: #07c160;
-  color: #fff;
-  font-size: 22rpx;
-}
 .full {
   display: flex;
   align-items: center;

@@ -19,6 +19,10 @@
         <view class="quick-icon">报</view>
         <text>线下报名</text>
       </view>
+      <view class="quick-item" @click="go('/pages/favorite/index')">
+        <view class="quick-icon">藏</view>
+        <text>收藏</text>
+      </view>
       <view class="quick-item" @click="go('/pages/coupon/mine')">
         <view class="quick-icon">券</view>
         <text>优惠券</text>

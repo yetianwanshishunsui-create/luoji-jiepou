@@ -141,6 +141,7 @@ export interface LessonBrief {
 export interface ProductDetail extends ProductCard {
   detailHtml: string | null;
   owned: boolean;
+  favorited: boolean;
   chapters: { id: string; title: string; lessons: LessonBrief[] }[];
   items: { id: string; title: string; cover: string | null; type: ProductType }[];
 }
@@ -219,6 +220,9 @@ export const api = {
   products: (params: { page: number; pageSize: number; categoryId?: string; bodyPart?: BodyPart }) =>
     request<PageResult<ProductCard>>({ url: '/api/v1/products', data: params }),
   product: (id: string) => request<ProductDetail>({ url: `/api/v1/products/${id}` }),
+  setFavorite: (id: string, on: boolean) =>
+    request<{ favorited: boolean }>({ url: `/api/v1/products/${id}/favorite`, method: on ? 'PUT' : 'DELETE' }),
+  favorites: () => request<ProductCard[]>({ url: '/api/v1/me/favorites' }),
 
   reviews: (productId: string, params: { page: number; pageSize: number }) =>
     request<ReviewPage>({ url: `/api/v1/products/${productId}/reviews`, data: params }),

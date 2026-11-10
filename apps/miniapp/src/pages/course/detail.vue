@@ -29,16 +29,13 @@
       </view>
     </view>
 
-    <!-- 引导加微信（一）：提示条 -->
-    <ConsultCard variant="strip" />
-
     <!-- 2. 场次选择（线下课）/ 课程目录（线上课） -->
     <view id="sessions">
       <OfflineSessions v-if="product.type === 'OFFLINE'" :product-id="product.id" :refresh-key="showCount">
         <template #left>
-          <view class="bar-consult" @click="consultSheet?.show()">
-            <view class="bar-icon">微</view>
-            <text>顾问</text>
+          <view :class="['bar-fav', { on: product.favorited }]" @click="toggleFavorite">
+            <text class="fav-icon">{{ product.favorited ? '★' : '☆' }}</text>
+            <text>{{ product.favorited ? '已收藏' : '收藏' }}</text>
           </view>
         </template>
       </OfflineSessions>
@@ -72,24 +69,23 @@
       <rich-text :nodes="product.detailHtml" />
     </view>
 
-    <!-- 引导加微信（二）：二维码卡片 -->
-    <ConsultCard variant="full" />
+    <!-- 引导添加课程顾问微信（全页只放这一处） -->
+    <ConsultCard />
 
     <!-- 4. 学员评价：免费课程不开放评价 -->
     <ReviewSection v-if="product.pricingMode !== 'FREE'" :product-id="product.id" :refresh-key="showCount" />
 
-    <!-- 底部操作栏：左侧顾问入口，右侧购买 / 学习（线下课的报名栏在场次组件里） -->
+    <!-- 底部操作栏：左侧收藏，右侧购买 / 学习（线下课的报名栏在场次组件里） -->
     <view v-if="product.type !== 'OFFLINE'" class="bar">
-      <view class="bar-consult" @click="consultSheet?.show()">
-        <view class="bar-icon">微</view>
-        <text>顾问</text>
+      <view :class="['bar-fav', { on: product.favorited }]" @click="toggleFavorite">
+        <text class="fav-icon">{{ product.favorited ? '★' : '☆' }}</text>
+        <text>{{ product.favorited ? '已收藏' : '收藏' }}</text>
       </view>
       <button v-if="!product.owned" class="btn-primary bar-btn" :loading="opening" @click="openCheckout">
         立即购买 {{ money(product.currentPriceCent, product.pricePrefix) }}
       </button>
       <button v-else class="btn-primary bar-btn" @click="startLearning">{{ product.pricingMode === 'FREE' ? '开始学习' : '继续学习' }}</button>
     </view>
-    <ConsultCard ref="consultSheet" variant="sheet" />
 
     <!-- 结算面板 -->
     <view v-if="checkout" class="mask" @click="checkout = null" />
@@ -194,7 +190,18 @@ function play(l: LessonBrief) {
 
 const openProduct = (pid: string) => uni.navigateTo({ url: `/pages/course/detail?id=${pid}` });
 
-const consultSheet = ref<InstanceType<typeof ConsultCard>>();
+const favoriting = ref(false);
+async function toggleFavorite() {
+  if (!product.value || favoriting.value) return;
+  favoriting.value = true;
+  try {
+    const { favorited } = await api.setFavorite(id, !product.value.favorited);
+    product.value.favorited = favorited;
+    uni.showToast({ title: favorited ? '已收藏' : '已取消收藏', icon: 'none' });
+  } finally {
+    favoriting.value = false;
+  }
+}
 
 /** 已购 / 免费：进入第一个课时；专栏、系列没有课时时滚到包含课程 */
 function startLearning() {
@@ -425,24 +432,20 @@ onShow(() => {
   background: rgba(255, 255, 255, 0.96);
   box-shadow: 0 -6rpx 24rpx rgba(20, 48, 111, 0.06);
 }
-.bar-consult {
+.bar-fav {
+  min-width: 72rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
   font-size: 20rpx;
   color: $text-secondary;
-  gap: 4rpx;
+  &.on {
+    color: #e08a1e;
+  }
 }
-.bar-icon {
-  width: 44rpx;
-  height: 44rpx;
-  border-radius: 14rpx;
-  background: #07c160;
-  color: #fff;
-  font-size: 22rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.fav-icon {
+  font-size: 40rpx;
+  line-height: 1.1;
 }
 .bar-btn {
   flex: 1;

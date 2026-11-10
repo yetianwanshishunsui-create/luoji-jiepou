@@ -145,7 +145,10 @@ export class AdminProductService {
       await tx.chapter.deleteMany({ where: { productId: id } });
       await tx.productItem.deleteMany({ where: { OR: [{ productId: id }, { childProductId: id }] } });
       await tx.priceRule.deleteMany({ where: { productId: id } });
+      // 收藏、加入计划不算「已有学员」，随课程一起删除
+      await tx.offlinePlan.deleteMany({ where: { session: { productId: id } } });
       await tx.offlineSession.deleteMany({ where: { productId: id } });
+      await tx.productFavorite.deleteMany({ where: { productId: id } });
       await tx.product.delete({ where: { id } });
     });
     await this.audit.log(adminId, 'PRODUCT_DELETE', id, { title: p.title });

@@ -9,6 +9,7 @@
     { "path": "pages/course/reviews", "style": { "navigationBarTitleText": "学员评价" } },
     { "path": "pages/cert/index", "style": { "navigationBarTitleText": "身份认证" } },
     { "path": "pages/join/index", "style": { "navigationBarTitleText": "合作" } },
+    { "path": "pages/favorite/index", "style": { "navigationBarTitleText": "我的收藏" } },
     { "path": "pages/about/index", "style": { "navigationBarTitleText": "关于逻辑解剖" } },
     { "path": "pages/schedule/index", "style": { "navigationBarTitleText": "线下会议日程" } },
     { "path": "pages/coupon/center", "style": { "navigationBarTitleText": "领券中心", "enablePullDownRefresh": true } },

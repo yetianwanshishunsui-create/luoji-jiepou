@@ -147,9 +147,11 @@ export class CatalogService {
       throw new BizException(ErrorCode.CONTENT_NOT_VISIBLE, '该内容对当前身份不可见');
     }
 
-    const owned =
-      product.pricingMode === PricingMode.FREE ||
-      !!(await this.prisma.entitlement.findUnique({ where: { userId_productId: { userId, productId: id } } }));
+    const [entitlement, favorite] = await Promise.all([
+      this.prisma.entitlement.findUnique({ where: { userId_productId: { userId, productId: id } } }),
+      this.prisma.productFavorite.findUnique({ where: { userId_productId: { userId, productId: id } } }),
+    ]);
+    const owned = product.pricingMode === PricingMode.FREE || !!entitlement;
 
     const { priceRules, children, ...rest } = product;
     return {
@@ -159,6 +161,35 @@ export class CatalogService {
       priceRule: ruleView(product.priceCent, priceRules),
       minDepositCent: product.type === 'OFFLINE' && product.sessions.length ? Math.min(...product.sessions.map((x) => x.depositCent)) : null,
       owned,
+      favorited: !!favorite,
     };
+  }
+
+  /** 收藏 / 取消收藏：只能收藏当前身份可见的已上架课程 */
+  async setFavorite(identity: IdentityType, userId: string, productId: string, on: boolean) {
+    if (on) {
+      const product = await this.prisma.product.findFirst({ where: { id: productId, status: 'ONLINE' }, select: { visibleTo: true } });
+      if (!product) throw new NotFoundException('课程不存在或已下架');
+      if (!isVisibleTo(product.visibleTo, identity)) throw new BizException(ErrorCode.CONTENT_NOT_VISIBLE, '该内容对当前身份不可见');
+      await this.prisma.productFavorite.upsert({
+        where: { userId_productId: { userId, productId } },
+        create: { userId, productId },
+        update: {},
+      });
+    } else {
+      await this.prisma.productFavorite.deleteMany({ where: { userId, productId } });
+    }
+    return { favorited: on };
+  }
+
+  /** 我的收藏：最近收藏在前；已下架或身份不可见的课程不显示 */
+  async favorites(identity: IdentityType, userId: string) {
+    const rows = await this.prisma.productFavorite.findMany({
+      where: { userId, product: { status: 'ONLINE', visibleTo: visibleFor(identity) } },
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+      select: { product: { select: cardSelect() } },
+    });
+    return rows.map((r) => toCard(r.product));
   }
 }
