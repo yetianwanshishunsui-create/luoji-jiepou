@@ -81,7 +81,7 @@ import ProductCard from '@/components/ProductCard.vue';
 import { useUserStore } from '@/stores/user';
 import { openCourseCategory } from '@/utils/nav';
 
-const CAT_SUB = ['四大主题 · 线下研习', '五大系列 · 随时学习', '免费 · 碎片化知识'];
+const CAT_SUB = ['四大主题 · 线下研习', '按部位 · 随时学习', '免费 · 碎片化知识'];
 const SECTION_EN: Record<string, string> = {
   线下精品课: 'Offline',
   专题课程: 'Featured',

@@ -8,7 +8,8 @@
           {{ c.name }}
         </view>
       </scroll-view>
-      <scroll-view v-if="children.length" scroll-x class="chips">
+      <!-- 线上精品课只按部位分类，不显示系列 / 专区 -->
+      <scroll-view v-if="children.length && !isOnline" scroll-x class="chips">
         <view :class="['chip', { active: !childId }]" @click="selectChild()">全部</view>
         <view v-for="c in children" :key="c.id" :class="['chip', { active: childId === c.id }]" @click="selectChild(c.id)">
           {{ c.name }}
@@ -25,7 +26,7 @@
       <text class="schedule-go">查看日程 →</text>
     </view>
 
-    <!-- 线上精品课：按部位分类 -->
+    <!-- 线上精品课：按部位分类（唯一的二级筛选） -->
     <view v-if="isOnline" class="card parts">
       <view class="parts-title">按部位</view>
       <scroll-view scroll-x class="part-row">

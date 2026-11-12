@@ -596,7 +596,7 @@ export const ABOUT_PAGE: AboutPageConfig = {
   founder: {
     name: '吴宇萌',
     title: '逻辑解剖理念创始人',
-    photo: null,
+    photo: '/static/demo/founder.jpg',
     tags: ['析芒教育咨询有限公司 CEO', '整形外科主诊医师', '面颈部解剖讲师', '十年解剖教学深耕'],
     bio: '',
   },

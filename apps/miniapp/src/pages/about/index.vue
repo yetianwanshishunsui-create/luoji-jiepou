@@ -161,9 +161,11 @@ const goCourses = () => uni.switchTab({ url: '/pages/course/list' });
 }
 .photo {
   width: 220rpx;
-  height: 280rpx;
+  height: 293rpx;
   border-radius: 20rpx;
   flex-shrink: 0;
+  background: linear-gradient(160deg, #f3f7ff, #e2ecff);
+  box-shadow: 0 10rpx 28rpx rgba(20, 48, 111, 0.12);
 }
 .monogram {
   background: linear-gradient(160deg, #e6efff, #c9dbff);
