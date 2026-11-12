@@ -62,7 +62,7 @@
               <el-checkbox-group v-model="form.bodyParts">
                 <el-checkbox v-for="(label, value) in BodyPartLabel" :key="value" :value="value">{{ label }}</el-checkbox>
               </el-checkbox-group>
-              <div class="muted">用于小程序首页的部位图标入口与课程筛选</div>
+              <div class="muted">用于小程序「线上精品课」中按部位分类筛选</div>
             </el-form-item>
 
             <template v-if="type === 'OFFLINE'">

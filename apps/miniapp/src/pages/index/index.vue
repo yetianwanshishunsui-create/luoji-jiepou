@@ -20,19 +20,6 @@
       </view>
     </view>
 
-    <!-- 按部位找课 -->
-    <view class="card parts">
-      <view class="sec-head">
-        <view><text class="sec-title">按部位找课</text><text class="sec-en">By Region</text></view>
-      </view>
-      <view class="part-grid">
-        <view v-for="p in PARTS" :key="p" class="part" @click="openCourses({ bodyPart: p })">
-          <view class="part-icon"><image :src="`/static/parts/${p.toLowerCase()}.png`" mode="aspectFit" class="part-img" /></view>
-          <text class="part-name">{{ BodyPartLabel[p] }}</text>
-        </view>
-      </view>
-    </view>
-
     <!-- 课程体系入口 -->
     <view class="cats">
       <view v-for="(c, i) in categories" :key="c.id" :class="['cat', `tone${i}`]" @click="openCourseCategory(c.id)">
@@ -85,16 +72,15 @@
 </template>
 
 <script setup lang="ts">
-import { BodyPart, BodyPartLabel, isTabPage } from '@luoji/shared';
+import { isTabPage } from '@luoji/shared';
 import { onPullDownRefresh, onShow } from '@dcloudio/uni-app';
 import { ref } from 'vue';
 import { api, type Category, type ProductCard as Card } from '@/api';
 import CertGate from '@/components/CertGate.vue';
 import ProductCard from '@/components/ProductCard.vue';
 import { useUserStore } from '@/stores/user';
-import { openCourseCategory, openCourses } from '@/utils/nav';
+import { openCourseCategory } from '@/utils/nav';
 
-const PARTS = Object.values(BodyPart);
 const CAT_SUB = ['四大主题 · 线下研习', '五大系列 · 随时学习', '免费 · 碎片化知识'];
 const SECTION_EN: Record<string, string> = {
   线下精品课: 'Offline',
@@ -197,35 +183,6 @@ onPullDownRefresh(() => load().finally(() => uni.stopPullDownRefresh()));
     width: 32rpx;
     background: #fff;
   }
-}
-.part-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  row-gap: 24rpx;
-  margin-top: 16rpx;
-}
-.part {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10rpx;
-}
-.part-icon {
-  width: 100rpx;
-  height: 100rpx;
-  border-radius: 30rpx;
-  background: linear-gradient(160deg, #f3f7ff, #e2ecff);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.part-img {
-  width: 76rpx;
-  height: 76rpx;
-}
-.part-name {
-  font-size: 24rpx;
-  color: $text;
 }
 .cats {
   display: grid;

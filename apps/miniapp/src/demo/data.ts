@@ -450,7 +450,7 @@ export const PRODUCTS: DemoProduct[] = [
   },
 ];
 
-/** 关键词与适用部位（后台课程编辑里填写）；部位用于首页「按部位找课」 */
+/** 关键词与适用部位（后台课程编辑里填写）；部位用于「线上精品课」按部位分类 */
 const META: Record<string, { keywords: string[]; bodyParts: BodyPart[] }> = {
   'o-dissect': { keywords: ['标本实操', '面颈部层次', '闭门研习会'], bodyParts: ['FULLFACE', 'NECK'] },
   'o-inject': { keywords: ['注射解剖对照', '临床转化'], bodyParts: ['FULLFACE'] },

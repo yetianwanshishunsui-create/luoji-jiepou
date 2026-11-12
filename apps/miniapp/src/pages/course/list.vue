@@ -25,9 +25,19 @@
       <text class="schedule-go">查看日程 →</text>
     </view>
 
-    <view v-if="bodyPart" class="part-filter">
-      <text>部位：{{ BodyPartLabel[bodyPart] }}</text>
-      <text class="part-clear" @click="clearPart">清除 ✕</text>
+    <!-- 线上精品课：按部位分类 -->
+    <view v-if="isOnline" class="card parts">
+      <view class="parts-title">按部位</view>
+      <scroll-view scroll-x class="part-row">
+        <view :class="['part', { active: !bodyPart }]" @click="selectPart()">
+          <view class="part-icon all">全</view>
+          <text class="part-name">全部</text>
+        </view>
+        <view v-for="p in PARTS" :key="p" :class="['part', { active: bodyPart === p }]" @click="selectPart(p)">
+          <view class="part-icon"><image :src="`/static/parts/${p.toLowerCase()}.png`" mode="aspectFit" class="part-img" /></view>
+          <text class="part-name">{{ BodyPartLabel[p] }}</text>
+        </view>
+      </scroll-view>
     </view>
 
     <view class="card">
@@ -39,7 +49,7 @@
 
 <script setup lang="ts">
 import { onReachBottom, onShow } from '@dcloudio/uni-app';
-import { BodyPartLabel, type BodyPart } from '@luoji/shared';
+import { BodyPart, BodyPartLabel } from '@luoji/shared';
 import { computed, ref } from 'vue';
 import { api, type Category, type ProductCard as Card } from '@/api';
 import CertGate from '@/components/CertGate.vue';
@@ -51,6 +61,7 @@ const user = useUserStore();
 const categories = ref<Category[]>([]);
 const rootId = ref<string>();
 const childId = ref<string>();
+const PARTS = Object.values(BodyPart);
 const bodyPart = ref<BodyPart>();
 const list = ref<Card[]>([]);
 const page = ref(1);
@@ -58,7 +69,9 @@ const loading = ref(false);
 const finished = ref(false);
 
 const children = computed(() => categories.value.find((c) => c.id === rootId.value)?.children ?? []);
-const isOffline = computed(() => !!categories.value.find((c) => c.id === rootId.value)?.name.includes('线下'));
+const rootName = computed(() => categories.value.find((c) => c.id === rootId.value)?.name ?? '');
+const isOffline = computed(() => rootName.value.includes('线下'));
+const isOnline = computed(() => rootName.value.includes('线上'));
 
 async function fetchPage(reset = false) {
   if (loading.value || (!reset && finished.value)) return;
@@ -80,6 +93,7 @@ async function fetchPage(reset = false) {
 function selectRoot(id?: string) {
   rootId.value = id;
   childId.value = undefined;
+  bodyPart.value = undefined;
   fetchPage(true);
 }
 
@@ -88,8 +102,8 @@ function selectChild(id?: string) {
   fetchPage(true);
 }
 
-function clearPart() {
-  bodyPart.value = undefined;
+function selectPart(part?: BodyPart) {
+  bodyPart.value = part;
   fetchPage(true);
 }
 
@@ -109,13 +123,7 @@ onShow(async () => {
   if (!user.certified) return;
   if (!categories.value.length) categories.value = await api.categories();
   const preset = takeCourseFilter();
-  if (preset?.bodyPart) {
-    // 从「按部位找课」进入：只按部位筛选
-    bodyPart.value = preset.bodyPart;
-    rootId.value = undefined;
-    childId.value = undefined;
-    fetchPage(true);
-  } else if (preset?.categoryId && applyPreset(preset.categoryId)) {
+  if (preset?.categoryId && applyPreset(preset.categoryId)) {
     bodyPart.value = undefined;
     fetchPage(true);
   } else if (!list.value.length) fetchPage(true);
@@ -190,19 +198,59 @@ onReachBottom(() => fetchPage());
   color: $brand;
   font-weight: 500;
 }
-.part-filter {
-  display: flex;
-  justify-content: space-between;
-  margin: 16rpx 28rpx 0;
-  padding: 16rpx 24rpx;
-  border-radius: 16rpx;
-  background: $brand-light;
-  color: $brand-deep;
-  font-size: 26rpx;
+.parts {
+  padding: 24rpx 0 20rpx;
 }
-.part-clear {
+.parts-title {
+  padding: 0 28rpx 12rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: $brand-deep;
+}
+.part-row {
+  white-space: nowrap;
+  padding: 0 16rpx;
+}
+.part {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  width: 116rpx;
+}
+.part-icon {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 26rpx;
+  background: linear-gradient(160deg, #f3f7ff, #e2ecff);
+  border: 2rpx solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  &.all {
+    font-size: 30rpx;
+    font-weight: 600;
+    color: $brand;
+  }
+}
+.part-img {
+  width: 66rpx;
+  height: 66rpx;
+}
+.part-name {
+  font-size: 22rpx;
   color: $text-secondary;
-  font-size: 24rpx;
+}
+.part.active {
+  .part-icon {
+    border-color: $brand;
+    background: linear-gradient(160deg, #e6efff, #cfe0ff);
+  }
+  .part-name {
+    color: $brand;
+    font-weight: 600;
+  }
 }
 .footer {
   text-align: center;
