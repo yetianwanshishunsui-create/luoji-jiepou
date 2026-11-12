@@ -25,7 +25,7 @@
       <view class="services-title">我的服务</view>
       <view class="service-grid">
         <view v-for="sv in services" :key="sv.name" class="service" @click="go(sv.url)">
-          <image :src="`/static/icons/${sv.icon}.png`" class="service-icon" mode="aspectFit" />
+          <image :src="staticUrl(`/static/icons/${sv.icon}.png`)" class="service-icon" mode="aspectFit" />
           <text>{{ sv.name }}</text>
         </view>
       </view>
@@ -65,6 +65,7 @@ import { onPageScroll, onShow } from '@dcloudio/uni-app';
 import { computed, ref } from 'vue';
 import { api } from '@/api';
 import NavBar from '@/components/NavBar.vue';
+import { staticUrl } from '@/utils/static';
 import { navBarHeight } from '@/utils/nav';
 import { resetDemo, switchIdentity } from '@/demo/mock';
 import { useUserStore } from '@/stores/user';

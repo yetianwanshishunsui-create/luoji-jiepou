@@ -3,6 +3,7 @@
  * 课程体系按析芒教育「逻辑解剖」品牌资料梳理：线下精品课（四大主题）、线上精品课（五大系列）、公益讲堂。
  * 课程名称取自品牌资料与现有小鹅通店铺；场次、部分价格、文章与音频正文为演示占位，正式内容由管理后台录入。
  */
+import { staticUrl } from '@/utils/static';
 import type { AboutPageConfig, BodyPart, ConsultConfig, IdentityType, JoinPageConfig, ProductType } from '@luoji/shared';
 
 const DAY = 86_400_000;
@@ -44,7 +45,7 @@ function hashKey(text: string) {
 function art(lines: string[], sub: string, theme: Theme = 'blue', tag = '', w = 600, h = 400, hero = false): string {
   const key = hashKey(JSON.stringify([lines, sub, theme, tag, w, h, hero]));
   if (!COVER_SPECS.some((c) => c.key === key)) COVER_SPECS.push({ key, lines, sub, tag, w, h, hero, theme: THEMES[theme] });
-  return `/static/demo/covers/${key}.jpg`;
+  return staticUrl(`/static/demo/covers/${key}.jpg`);
 }
 
 export interface DemoLesson {

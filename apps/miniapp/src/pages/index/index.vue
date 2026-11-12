@@ -31,7 +31,7 @@
     <!-- 入口：3 × 2 线条图标 -->
     <view class="card entries">
       <view v-for="e in entries" :key="e.name" class="entry" @click="e.go()">
-        <image :src="`/static/icons/${e.icon}.png`" class="entry-icon" mode="aspectFit" />
+        <image :src="staticUrl(`/static/icons/${e.icon}.png`)" class="entry-icon" mode="aspectFit" />
         <text class="entry-name">{{ e.name }}</text>
       </view>
     </view>
@@ -69,6 +69,7 @@ import CertGate from '@/components/CertGate.vue';
 import ProductCard from '@/components/ProductCard.vue';
 import { useUserStore } from '@/stores/user';
 import { openCourseCategory } from '@/utils/nav';
+import { staticUrl } from '@/utils/static';
 
 const user = useUserStore();
 const banners = ref<{ id: string; title: string; image: string; link: string | null }[]>([]);

@@ -16,6 +16,22 @@ export default defineConfig(({ mode }) => {
       ...(mode === 'demo'
         ? [{ name: 'demo-title', transformIndexHtml: (html: string) => html.replace('<title>逻辑解剖</title>', '<title>逻辑解剖 · 演示版</title>') }]
         : []),
+      // 单文件 HTML 演示版（scripts/build-single-html.mjs）：所有页面打进一个脚本，便于内嵌进一个 HTML
+      ...(process.env.DEMO_SINGLE_FILE === '1'
+        ? [
+            {
+              name: 'demo-single-file',
+              enforce: 'post' as const,
+              config: () => ({
+                build: {
+                  cssCodeSplit: false,
+                  assetsInlineLimit: 100_000_000,
+                  rollupOptions: { output: { inlineDynamicImports: true, manualChunks: undefined } },
+                },
+              }),
+            },
+          ]
+        : []),
       // 非演示构建删掉演示封面等素材（uni 会原样复制整个 static 目录）
       ...(env.VITE_DEMO === 'true'
         ? []

@@ -35,7 +35,7 @@
           <text class="part-name">全部</text>
         </view>
         <view v-for="p in PARTS" :key="p" :class="['part', { active: bodyPart === p }]" @click="selectPart(p)">
-          <view class="part-icon"><image :src="`/static/parts/${p.toLowerCase()}.png`" mode="aspectFit" class="part-img" /></view>
+          <view class="part-icon"><image :src="staticUrl(`/static/parts/${p.toLowerCase()}.png`)" mode="aspectFit" class="part-img" /></view>
           <text class="part-name">{{ BodyPartLabel[p] }}</text>
         </view>
       </scroll-view>
@@ -57,6 +57,7 @@ import CertGate from '@/components/CertGate.vue';
 import ProductCard from '@/components/ProductCard.vue';
 import { useUserStore } from '@/stores/user';
 import { takeCourseFilter } from '@/utils/nav';
+import { staticUrl } from '@/utils/static';
 
 const user = useUserStore();
 const categories = ref<Category[]>([]);

@@ -82,6 +82,12 @@ pnpm --filter @luoji/miniapp build:demo   # 产物在 apps/miniapp/dist/build/h5
 
 演示版内置了几条演示评价；购买课程后可以写评价，评价里出现「微信」「加我」、手机号等疑似联系方式时模拟进入待审核。
 
+也可以打包成一个独立的 HTML 文件（脚本、样式、图片全部内嵌，双击即可打开，便于发给客户）：
+
+```bash
+pnpm --filter @luoji/miniapp build:demo-html   # 产物：apps/miniapp/dist/逻辑解剖演示版.html
+```
+
 同一套演示数据也可以编译成微信小程序，导入微信开发者工具查看（AppID 选「测试号」即可，不需要后端）：
 
 ```bash
