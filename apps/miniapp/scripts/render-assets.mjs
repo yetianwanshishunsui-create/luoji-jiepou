@@ -154,7 +154,7 @@ if (targets.has('covers')) {
   const { COVER_SPECS } = await import(tmp);
   rmSync(tmp);
 
-  const text = COVER_SPECS.flatMap((c) => [...c.lines, c.sub, c.tag]).join('') + '逻辑解剖LOGIC ANATOMY';
+  const text = COVER_SPECS.flatMap((c) => [...c.lines, c.sub]).join('') + '逻辑解剖';
   const fonts = `@font-face{font-family:T;src:url(${font('Noto+Serif+SC:wght@700', text)})}@font-face{font-family:S;src:url(${font('Noto+Sans+SC:wght@400;500', text)})}`;
   const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 
@@ -163,43 +163,27 @@ if (targets.has('covers')) {
   mkdirSync(dir, { recursive: true });
   for (const c of COVER_SPECS) {
     const { w, h, theme: t } = c;
+    // 横幅（宽图）带副标题；课程封面只放标题，列表里缩小显示时也干净
     const wide = w / h > 2;
-    const dark = t.title === '#ffffff';
-    const pad = w * (wide ? 0.06 : 0.075);
-    const size = c.hero
-      ? Math.min(h * 0.095, (w * 0.8) / Math.max(...c.lines.map((l) => l.length)))
-      : Math.min(h * (wide ? 0.15 : 0.12), (w * (wide ? 0.6 : 0.82)) / Math.max(...c.lines.map((l) => l.length)));
-    // 通铺大图上方约 30% 被透明导航栏盖住，下方约 12% 被入口卡片盖住
-    const top = (c.hero ? h * 0.56 : h * 0.47) - ((c.lines.length - 1) * size * 1.28) / 2;
-    const labelY = c.hero ? top - size * 1.25 : h * 0.16;
+    const pad = w * (wide ? 0.06 : 0.08);
+    const size = Math.min(h * (wide ? 0.14 : 0.13), (w * (wide ? 0.6 : 0.8)) / Math.max(...c.lines.map((l) => l.length)));
+    const top = h * (wide ? 0.5 : 0.55) - ((c.lines.length - 1) * size * 1.28) / 2;
     const titles = c.lines.map((l, i) => `<text x="${pad}" y="${top + i * size * 1.28}" font-family="T" font-weight="700" font-size="${size}" letter-spacing="${size * 0.04}" fill="${t.title}">${esc(l)}</text>`).join('');
     const lineY = top + (c.lines.length - 1) * size * 1.28 + size * 0.55;
-    const tagH = c.hero ? h * 0.065 : h * 0.1;
-    const tagW = c.tag.length * (c.hero ? h * 0.034 : h * 0.05) + tagH * 0.7;
-    const tagY = c.hero ? lineY + h * 0.12 : h - pad * 0.7 - tagH;
-    const tagX = c.hero ? pad : w - pad - tagW;
     // 右侧的层次弧线：呼应「逐层解剖」
     const arcs = [0.28, 0.4, 0.52, 0.64, 0.76]
-      .map((r, i) => `<circle cx="${w * 0.98}" cy="${h * 0.5}" r="${h * r}" fill="none" stroke="${t.line}" stroke-opacity="${0.55 - i * 0.08}" stroke-width="${i === 1 ? 2 : 1}"/>`)
+      .map((r, i) => `<circle cx="${w * 0.98}" cy="${h * 0.5}" r="${h * r}" fill="none" stroke="${t.line}" stroke-opacity="${0.5 - i * 0.08}" stroke-width="${i === 1 ? 2 : 1}"/>`)
       .join('');
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${t.bg[0]}"/><stop offset="1" stop-color="${t.bg[1]}"/></linearGradient>
-    <radialGradient id="glow" cx=".85" cy=".2" r=".6"><stop offset="0" stop-color="#ffffff" stop-opacity="${dark ? 0.12 : 0.55}"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient>
   </defs>
   <rect width="${w}" height="${h}" fill="url(#bg)"/>
-  <rect width="${w}" height="${h}" fill="url(#glow)"/>
   ${arcs}
-  <circle cx="${w * 0.98 - h * 0.4}" cy="${h * 0.5}" r="${h * 0.012}" fill="${t.accent}"/>
-  <text x="${pad}" y="${labelY}" font-family="S" font-weight="500" font-size="${c.hero ? h * 0.032 : h * 0.048}" letter-spacing="${h * 0.012}" fill="${t.accent}">逻辑解剖 · LOGIC ANATOMY</text>
+  <text x="${pad}" y="${h * 0.17}" font-family="S" font-weight="500" font-size="${h * 0.05}" letter-spacing="${h * 0.012}" fill="${t.accent}">逻辑解剖</text>
   ${titles}
-  <rect x="${pad}" y="${lineY}" width="${h * 0.12}" height="${h * 0.012}" rx="${h * 0.006}" fill="${t.accent}"/>
-  <text x="${pad}" y="${lineY + (c.hero ? h * 0.075 : h * 0.1)}" font-family="S" font-size="${c.hero ? h * 0.036 : h * 0.052}" fill="${t.sub}">${esc(c.sub)}</text>
-  ${
-    c.tag
-      ? `<rect x="${tagX}" y="${tagY}" width="${tagW}" height="${tagH}" rx="${tagH / 2}" fill="${dark ? '#ffffff' : t.accent}"/><text x="${tagX + tagW / 2}" y="${tagY + tagH * 0.66}" text-anchor="middle" font-family="S" font-weight="500" font-size="${tagH * 0.48}" fill="${dark ? '#1d3c8f' : '#ffffff'}">${esc(c.tag)}</text>`
-      : ''
-  }
+  <rect x="${pad}" y="${lineY}" width="${h * 0.1}" height="${h * 0.012}" rx="${h * 0.006}" fill="${t.accent}"/>
+  ${wide ? `<text x="${pad}" y="${lineY + h * 0.1}" font-family="S" font-size="${h * 0.05}" fill="${t.sub}">${esc(c.sub)}</text>` : ''}
 </svg>`;
     await snap(svg, w, h, join(dir, `${c.key}.jpg`), { type: 'jpeg', fonts });
   }

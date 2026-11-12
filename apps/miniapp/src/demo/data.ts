@@ -28,8 +28,6 @@ export interface CoverSpec {
   tag: string;
   w: number;
   h: number;
-  /** 首页通铺大图：内容整体下移，避开透明导航栏 */
-  hero: boolean;
   theme: (typeof THEMES)[Theme];
 }
 export const COVER_SPECS: CoverSpec[] = [];
@@ -42,9 +40,10 @@ function hashKey(text: string) {
 }
 
 /** 品牌风格的占位封面：左上角字标、衬线大标题、强调细线、副标题、右下角标签 */
-function art(lines: string[], sub: string, theme: Theme = 'blue', tag = '', w = 600, h = 400, hero = false): string {
-  const key = hashKey(JSON.stringify([lines, sub, theme, tag, w, h, hero]));
-  if (!COVER_SPECS.some((c) => c.key === key)) COVER_SPECS.push({ key, lines, sub, tag, w, h, hero, theme: THEMES[theme] });
+function art(lines: string[], sub: string, _theme: Theme = 'blue', tag = '', w = 600, h = 400): string {
+  // 演示封面统一用浅蓝一套配色，避免五颜六色；theme 参数保留，正式封面由运营上传
+  const key = hashKey(JSON.stringify([lines, sub, tag, w, h, 'v3']));
+  if (!COVER_SPECS.some((c) => c.key === key)) COVER_SPECS.push({ key, lines, sub, tag, w, h, theme: THEMES.blue });
   return staticUrl(`/static/demo/covers/${key}.jpg`);
 }
 

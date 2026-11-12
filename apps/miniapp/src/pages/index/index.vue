@@ -16,47 +16,61 @@
       <view v-else class="founder-photo monogram">{{ founder.name.slice(0, 1) }}</view>
     </view>
 
-    <!-- 轮播图 -->
-    <view v-if="banners.length" class="banner-wrap">
-      <swiper class="banner" circular autoplay :interval="4500" @change="onBanner">
-        <swiper-item v-for="b in banners" :key="b.id" @click="b.link && openLink(b.link)">
-          <image :src="b.image" :aria-label="b.title" mode="aspectFill" class="banner-img" />
-        </swiper-item>
-      </swiper>
-      <view class="dots">
-        <view v-for="(b, i) in banners" :key="b.id" :class="['dot', { on: i === bannerIndex }]" />
+    <!-- 课程体系：杂志目录式 -->
+    <view class="card toc">
+      <view class="sec-head"><text class="sec-title">课程体系</text></view>
+      <view v-for="(r, i) in ROOTS" :key="r.word" class="toc-row" @click="openRoot(r.word)">
+        <text class="toc-no">0{{ i + 1 }}</text>
+        <view class="toc-text">
+          <text class="toc-name">{{ r.name }}</text>
+          <text class="toc-sub">{{ r.sub }}</text>
+        </view>
+        <text class="toc-arrow">→</text>
+      </view>
+      <view class="toc-links">
+        <view v-for="l in LINKS" :key="l.name" class="toc-link" @click="go(l.url)">
+          <image :src="staticUrl(`/static/icons/${l.icon}.png`)" class="toc-link-icon" mode="aspectFit" />
+          <text>{{ l.name }}</text>
+        </view>
       </view>
     </view>
 
-    <!-- 入口：3 × 2 线条图标 -->
-    <view class="card entries">
-      <view v-for="e in entries" :key="e.name" class="entry" @click="e.go()">
-        <image :src="staticUrl(`/static/icons/${e.icon}.png`)" class="entry-icon" mode="aspectFit" />
-        <text class="entry-name">{{ e.name }}</text>
-      </view>
+    <!-- 精选：横向滑动卡片（后台 Banner） -->
+    <view v-if="banners.length" class="featured">
+      <view class="sec-head pad"><text class="sec-title">精选</text></view>
+      <scroll-view scroll-x class="featured-row" :show-scrollbar="false">
+        <view v-for="b in banners" :key="b.id" class="feature" @click="b.link && openLink(b.link)">
+          <image :src="b.image" :aria-label="b.title" mode="aspectFill" class="feature-img" />
+          <view class="feature-title">{{ b.title }}</view>
+        </view>
+      </scroll-view>
     </view>
 
     <!-- 合作入口：仅从业者身份显示 -->
-    <view v-if="user.profile?.identityType === 'PRACTITIONER'" class="join" @click="goJoin">
+    <view v-if="user.profile?.identityType === 'PRACTITIONER'" class="card join" @click="goJoin">
       <view>
         <view class="join-title">合作招募</view>
         <view class="join-sub">品牌协作 · 渠道与区域合伙 · 机构团课</view>
       </view>
-      <text class="join-go">了解合作 ›</text>
+      <text class="join-go">了解合作 →</text>
     </view>
 
-    <!-- 推荐栏目：两列网格 -->
-    <view v-for="sec in sections" :key="sec.title" class="section">
+    <!-- 推荐栏目：线下课按日程展示，其余为文字列表 -->
+    <view v-for="sec in sections" :key="sec.title" class="card section">
       <view class="sec-head">
         <text class="sec-title">{{ sec.title }}</text>
-        <text class="sec-more" @click="openMore(sec.title)">查看全部 ›</text>
+        <text class="sec-more" @click="openMore(sec.title)">全部 →</text>
       </view>
-      <view class="card-grid">
-        <ProductCard v-for="p in sec.products.slice(0, 4)" :key="p.id" :product="p" layout="grid" />
-      </view>
+      <ProductCard
+        v-for="p in sec.products.slice(0, 4)"
+        :key="p.id"
+        :product="p"
+        :layout="p.type === 'OFFLINE' ? 'event' : 'list'"
+      />
     </view>
     <view v-if="loaded && !sections.length" class="card muted empty">暂无课程</view>
-    <view class="bottom-space" />
+
+    <view class="footer">析毫剖芒 · 以解剖立学，以临床立教</view>
   </CertGate>
 </template>
 
@@ -71,9 +85,19 @@ import { useUserStore } from '@/stores/user';
 import { openCourseCategory } from '@/utils/nav';
 import { staticUrl } from '@/utils/static';
 
+const ROOTS = [
+  { word: '线下', name: '线下精品课', sub: '四大主题 · 标本实操与临床转化' },
+  { word: '线上', name: '线上精品课', sub: '按部位系统学习 · 随时回看' },
+  { word: '公益', name: '公益讲堂', sub: '每日 60 秒 · 云学苑' },
+];
+const LINKS = [
+  { name: '会议日程', icon: 'schedule', url: '/pages/schedule/index' },
+  { name: '领券中心', icon: 'gift', url: '/pages/coupon/center' },
+  { name: '我的收藏', icon: 'favorite', url: '/pages/favorite/index' },
+];
+
 const user = useUserStore();
 const banners = ref<{ id: string; title: string; image: string; link: string | null }[]>([]);
-const bannerIndex = ref(0);
 const sections = ref<{ title: string; products: Card[] }[]>([]);
 const categories = ref<Category[]>([]);
 const founder = ref<AboutPageConfig['founder']>(DEFAULT_ABOUT_PAGE.founder);
@@ -85,16 +109,7 @@ const openRoot = (word: string) => {
   return c ? openCourseCategory(c.id) : uni.switchTab({ url: '/pages/course/list' });
 };
 
-const entries = [
-  { name: '线下精品课', icon: 'offline', go: () => openRoot('线下') },
-  { name: '线上精品课', icon: 'online', go: () => openRoot('线上') },
-  { name: '公益讲堂', icon: 'free', go: () => openRoot('公益') },
-  { name: '会议日程', icon: 'schedule', go: () => uni.navigateTo({ url: '/pages/schedule/index' }) },
-  { name: '领券中心', icon: 'gift', go: () => uni.navigateTo({ url: '/pages/coupon/center' }) },
-  { name: '我的收藏', icon: 'favorite', go: () => uni.navigateTo({ url: '/pages/favorite/index' }) },
-];
-
-/** 栏目「查看全部」：线下 / 公益栏目进对应分类，其余进线上精品课 */
+/** 栏目「全部」：线下 / 公益栏目进对应分类，其余进线上精品课 */
 const openMore = (title: string) => openRoot(title.includes('线下') ? '线下' : title.includes('公益') ? '公益' : '线上');
 
 async function load() {
@@ -111,11 +126,11 @@ async function load() {
   loaded.value = true;
 }
 
-const onBanner = (e: { detail: { current: number } }) => (bannerIndex.value = e.detail.current);
 /** 运营位链接：tabBar 页面只能 switchTab */
 const openLink = (link: string) => (isTabPage(link) ? uni.switchTab({ url: link }) : uni.navigateTo({ url: link }));
-const goJoin = () => uni.navigateTo({ url: '/pages/join/index' });
-const goAbout = () => uni.navigateTo({ url: '/pages/about/index' });
+const go = (url: string) => uni.navigateTo({ url });
+const goJoin = () => go('/pages/join/index');
+const goAbout = () => go('/pages/about/index');
 
 onShow(() => load().catch(() => undefined));
 onPullDownRefresh(() => load().finally(() => uni.stopPullDownRefresh()));
@@ -204,68 +219,96 @@ onPullDownRefresh(() => load().finally(() => uni.stopPullDownRefresh()));
   font-weight: 600;
   color: $brand;
 }
-.banner-wrap {
-  position: relative;
-  margin: 24rpx 28rpx 0;
+.toc {
+  padding-bottom: 8rpx;
 }
-.banner {
-  height: 296rpx;
-  border-radius: 24rpx;
-  overflow: hidden;
-  transform: translateY(0); /* 修复 iOS 圆角裁剪失效 */
-}
-.banner-img {
-  width: 100%;
-  height: 100%;
-}
-.dots {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 16rpx;
+.toc-row {
   display: flex;
-  justify-content: center;
-  gap: 8rpx;
+  align-items: center;
+  gap: 24rpx;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid $line;
 }
-.dot {
-  width: 12rpx;
-  height: 6rpx;
-  border-radius: 6rpx;
-  background: rgba(42, 91, 215, 0.25);
-  transition: width 0.3s;
-  &.on {
-    width: 30rpx;
-    background: $brand;
-  }
+.toc-no {
+  width: 64rpx;
+  font-family: 'Songti SC', 'STSong', 'Noto Serif SC', serif;
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #b9cdf3;
 }
-.entries {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  padding: 30rpx 0 4rpx;
-}
-.entry {
+.toc-text {
+  flex: 1;
   display: flex;
   flex-direction: column;
+  gap: 4rpx;
+}
+.toc-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: $brand-deep;
+}
+.toc-sub {
+  font-size: 22rpx;
+  color: $text-secondary;
+}
+.toc-arrow {
+  font-size: 28rpx;
+  color: $brand;
+}
+.toc-links {
+  display: flex;
+  justify-content: space-between;
+  padding: 22rpx 0 16rpx;
+}
+.toc-link {
+  display: flex;
   align-items: center;
-  gap: 10rpx;
-  padding-bottom: 26rpx;
+  gap: 8rpx;
+  font-size: 22rpx;
+  color: $text-secondary;
 }
-.entry-icon {
-  width: 60rpx;
-  height: 60rpx;
+.toc-link-icon {
+  width: 36rpx;
+  height: 36rpx;
 }
-.entry-name {
+.featured {
+  margin-top: 8rpx;
+}
+.pad {
+  padding: 0 28rpx;
+}
+.featured-row {
+  white-space: nowrap;
+  padding: 8rpx 0 4rpx 28rpx;
+  box-sizing: border-box;
+}
+.feature {
+  display: inline-block;
+  width: 520rpx;
+  margin-right: 20rpx;
+  vertical-align: top;
+  white-space: normal;
+}
+.feature-img {
+  display: block;
+  width: 520rpx;
+  height: 222rpx;
+  border-radius: 20rpx;
+  background: $brand-light;
+}
+.feature-title {
+  margin-top: 12rpx;
   font-size: 24rpx;
+  font-weight: 500;
   color: $text;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .join {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 0 28rpx;
-  padding: 26rpx 30rpx;
-  border-radius: 24rpx;
-  background: linear-gradient(120deg, #eef4ff, #d9e6ff);
 }
 .join-title {
   font-size: 26rpx;
@@ -280,23 +323,20 @@ onPullDownRefresh(() => load().finally(() => uni.stopPullDownRefresh()));
 .join-go {
   font-size: 22rpx;
   color: $brand;
-  font-weight: 500;
 }
 .section {
-  margin-top: 36rpx;
-  padding: 0 28rpx;
-}
-.card-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20rpx;
-  margin-top: 6rpx;
+  padding-top: 28rpx;
+  padding-bottom: 8rpx;
 }
 .empty {
   padding: 40rpx 0;
   text-align: center;
 }
-.bottom-space {
-  height: 40rpx;
+.footer {
+  padding: 16rpx 0 48rpx;
+  text-align: center;
+  font-size: 20rpx;
+  letter-spacing: 4rpx;
+  color: $text-weak;
 }
 </style>

@@ -1,72 +1,68 @@
 <template>
-  <view :class="['item', `is-${layout}`]" @click="open">
-    <view class="cover-box">
-      <image v-if="product.cover" class="cover" :src="product.cover" mode="aspectFill" />
-      <view v-else class="cover" />
-      <text class="type">{{ ProductTypeLabel[product.type] }}</text>
+  <!-- event：线下课按日程展示（左侧日期）；list：文字在左、小封面在右 -->
+  <view v-if="layout === 'event'" class="item event" @click="open">
+    <view class="date">
+      <template v-if="product.nextSession">
+        <text class="day">{{ new Date(product.nextSession.startAt).getDate() }}</text>
+        <text class="month">{{ new Date(product.nextSession.startAt).getMonth() + 1 }} 月</text>
+      </template>
+      <text v-else class="tbd">待定</text>
     </view>
     <view class="info">
-      <view class="title">
-        <text v-if="product.priceRule" class="rule-tag">{{ product.priceRule.type === 'EARLY_BIRD' ? '早鸟' : '限时' }}</text>
-        {{ product.title }}
+      <view class="meta">{{ eventMeta }}</view>
+      <view class="title">{{ product.title }}</view>
+      <view class="bottom">
+        <text class="price">{{ product.minDepositCent != null ? `定金 ${money(product.minDepositCent, product.pricePrefix)} 起` : '敬请期待' }}</text>
+        <text v-if="product.priceRule" class="rule">{{ product.priceRule.type === 'EARLY_BIRD' ? '早鸟' : '限时' }}</text>
       </view>
-      <view v-if="product.keywords?.length" class="kws">
-        <text v-for="k in product.keywords.slice(0, 2)" :key="k" class="kw-mini">{{ k }}</text>
-      </view>
-      <view v-else class="muted sub">{{ product.subtitle }}</view>
+    </view>
+  </view>
+
+  <view v-else class="item list" @click="open">
+    <view class="info">
+      <view class="meta">{{ listMeta }}</view>
+      <view class="title">{{ product.title }}</view>
       <view class="bottom">
         <text v-if="product.type === 'OFFLINE'" class="price">{{ product.minDepositCent != null ? `定金 ${money(product.minDepositCent, product.pricePrefix)} 起` : '暂无场次' }}</text>
-        <text v-else-if="product.pricingMode === 'FREE'" class="free">免费</text>
+        <text v-else-if="product.pricingMode === 'FREE'" class="price free">免费</text>
         <template v-else>
           <text class="price">{{ money(product.currentPriceCent, product.pricePrefix) }}</text>
           <text v-if="product.currentPriceCent < product.priceCent" class="origin">{{ money(product.priceCent, product.pricePrefix) }}</text>
         </template>
+        <text v-if="product.priceRule" class="rule">{{ product.priceRule.type === 'EARLY_BIRD' ? '早鸟' : '限时' }}</text>
       </view>
     </view>
+    <image v-if="product.cover" class="thumb" :src="product.cover" mode="aspectFill" />
+    <view v-else class="thumb" />
   </view>
 </template>
 
 <script setup lang="ts">
 import { ProductTypeLabel } from '@luoji/shared';
+import { computed } from 'vue';
 import type { ProductCard } from '@/api';
 import { money } from '@/utils/format';
 
-/** row：左图右文（默认）；grid：上图下文，用于两列网格 */
-const props = withDefaults(defineProps<{ product: ProductCard; layout?: 'row' | 'grid' }>(), { layout: 'row' });
+const props = withDefaults(defineProps<{ product: ProductCard; layout?: 'list' | 'event' }>(), { layout: 'list' });
+// 小字说明拼成一个字符串，便于单行省略（uni 的 text 组件默认允许换行）
+const listMeta = computed(() => [ProductTypeLabel[props.product.type], ...(props.product.keywords ?? []).slice(0, 2)].join(' · '));
+const eventMeta = computed(() => {
+  const n = props.product.nextSession;
+  return n ? `${n.title}${n.count > 1 ? ` 等 ${n.count} 场` : ''}` : '场次待公布';
+});
 const open = () => uni.navigateTo({ url: `/pages/course/detail?id=${props.product.id}` });
 </script>
 
 <style lang="scss" scoped>
 .item {
   display: flex;
+  align-items: stretch;
   gap: 24rpx;
   padding: 26rpx 0;
   border-bottom: 1rpx solid $line;
   &:last-child {
     border-bottom: none;
-    padding-bottom: 4rpx;
   }
-}
-.cover-box {
-  position: relative;
-  flex-shrink: 0;
-}
-.cover {
-  display: block;
-  width: 236rpx;
-  height: 158rpx;
-  border-radius: 16rpx;
-  background: $brand-light;
-}
-.type {
-  position: absolute;
-  right: 0;
-  top: 0;
-  padding: 2rpx 12rpx;
-  border-radius: 0 16rpx 0 12rpx;
-  background: rgba(20, 48, 111, 0.72);
-  color: #fff;
-  font-size: 20rpx;
 }
 .info {
   flex: 1;
@@ -74,104 +70,87 @@ const open = () => uni.navigateTo({ url: `/pages/course/detail?id=${props.produc
   display: flex;
   flex-direction: column;
 }
+.meta {
+  font-size: 20rpx;
+  letter-spacing: 1rpx;
+  color: $text-weak;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .title {
+  margin-top: 6rpx;
   font-size: 26rpx;
   font-weight: 600;
-  line-height: 1.45;
+  line-height: 1.5;
+  color: $text;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.rule-tag {
-  display: inline-block;
-  margin-right: 8rpx;
-  padding: 0 10rpx;
-  border-radius: 6rpx;
-  background: linear-gradient(135deg, #ff7a45, $price);
-  color: #fff;
-  font-size: 20rpx;
-  font-weight: 500;
-  line-height: 32rpx;
-  vertical-align: 2rpx;
-}
-.kws {
-  margin-top: 10rpx;
-  display: flex;
-  gap: 10rpx;
-  overflow: hidden;
-}
-.kw-mini {
-  flex-shrink: 0;
-  padding: 0 12rpx;
-  border-radius: 6rpx;
-  background: $brand-soft;
-  color: #4f6ea8;
-  font-size: 20rpx;
-  line-height: 34rpx;
-}
-.sub {
-  margin-top: 8rpx;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 .bottom {
   margin-top: auto;
+  padding-top: 10rpx;
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
 }
-
-/* ───── 两列网格 ───── */
-.item.is-grid {
-  flex-direction: column;
-  gap: 0;
-  padding: 0;
-  border: none;
-  border-radius: 20rpx;
-  overflow: hidden;
-  background: #fff;
-  box-shadow: 0 8rpx 28rpx rgba(20, 48, 111, 0.07);
-  .cover-box {
-    width: 100%;
-  }
-  .cover {
-    width: 100%;
-    height: 220rpx;
-    border-radius: 0;
-  }
-  .type {
-    border-radius: 0 0 0 12rpx;
-  }
-  .info {
-    padding: 18rpx 20rpx 20rpx;
-    min-height: 168rpx;
-    box-sizing: border-box;
-  }
-  .title {
-    font-size: 25rpx;
-    line-height: 1.5;
-  }
-  .price,
-  .free {
-    font-size: 26rpx;
-  }
-  .kws {
-    margin-top: 8rpx;
-  }
-  .sub {
-    margin-top: 6rpx;
-  }
-  .bottom {
-    padding-top: 10rpx;
-  }
-}
-.free {
-  color: $brand;
+.price {
+  font-size: 24rpx;
   font-weight: 600;
+  color: $brand-deep;
+  &.free {
+    color: $brand;
+  }
 }
 .origin {
-  margin-left: 12rpx;
+  font-size: 20rpx;
   color: $text-weak;
-  font-size: 22rpx;
   text-decoration: line-through;
+}
+.rule {
+  padding: 0 10rpx;
+  border-radius: 6rpx;
+  border: 1rpx solid $brand;
+  color: $brand;
+  font-size: 18rpx;
+  line-height: 28rpx;
+}
+.thumb {
+  width: 176rpx;
+  height: 118rpx;
+  border-radius: 12rpx;
+  flex-shrink: 0;
+  background: $brand-light;
+}
+
+/* ───── 日程式（线下课） ───── */
+.date {
+  width: 104rpx;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12rpx 0;
+  border-right: 1rpx solid $line;
+  margin-right: 4rpx;
+}
+.day {
+  font-family: 'Songti SC', 'STSong', 'Noto Serif SC', serif;
+  font-size: 52rpx;
+  font-weight: 700;
+  line-height: 1;
+  color: $brand-deep;
+}
+.month {
+  margin-top: 8rpx;
+  font-size: 20rpx;
+  color: $text-secondary;
+}
+.tbd {
+  font-size: 22rpx;
+  color: $text-weak;
 }
 </style>

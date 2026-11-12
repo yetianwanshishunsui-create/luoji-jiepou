@@ -27,6 +27,8 @@ export interface ProductCard {
   priceRule: { type: 'EARLY_BIRD' | 'LIMITED_TIME'; endAt: string } | null;
   /** 线下课：未开始场次中最低的定金 */
   minDepositCent?: number | null;
+  /** 线下课：最近一场（日期、场次名）及未开始的场次数 */
+  nextSession?: { startAt: string; title: string; count: number } | null;
   /** 价格前的说明文字（如演示版的「虚拟」），没有则不显示 */
   pricePrefix?: string | null;
   /** 关键词标签（详情页标题下、卡片上展示） */

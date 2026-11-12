@@ -195,6 +195,7 @@ function card(s: State, p: DemoProduct) {
   const open = sessionsOf(s, p).filter((x) => x.startAt > Date.now());
   // 线下课卡片显示最低定金（及该场次的价格说明）
   const cheapest = open.length ? open.reduce((a, b) => (b.depositCent < a.depositCent ? b : a)) : null;
+  const next = open.length ? open.reduce((a, b) => (b.startAt < a.startAt ? b : a)) : null;
   return {
     id: p.id,
     type: p.type,
@@ -207,6 +208,7 @@ function card(s: State, p: DemoProduct) {
     currentPriceCent: rule ? rule.priceCent : p.priceCent,
     priceRule: rule ? { type: rule.type, endAt: iso(rule.endAt) } : null,
     minDepositCent: cheapest ? cheapest.depositCent : p.type === 'OFFLINE' ? null : undefined,
+    nextSession: next ? { startAt: iso(next.startAt), title: next.title, count: open.length } : null,
     pricePrefix: (cheapest ? cheapest.pricePrefix : p.pricePrefix) ?? null,
     keywords: p.keywords ?? [],
     bodyParts: p.bodyParts ?? [],

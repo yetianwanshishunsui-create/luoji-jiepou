@@ -1,55 +1,54 @@
 <template>
   <CertGate>
-    <!-- 一级：线下精品课 / 线上精品课 / 公益讲堂；二级：系列与专区 -->
-    <view class="nav">
-      <scroll-view scroll-x class="tabs">
-        <view :class="['tab', { active: !rootId }]" @click="selectRoot()">全部</view>
-        <view v-for="c in categories" :key="c.id" :class="['tab', { active: rootId === c.id }]" @click="selectRoot(c.id)">
+    <!-- 左侧分类栏 + 右侧列表 -->
+    <view class="layout">
+      <scroll-view scroll-y class="rail">
+        <view :class="['rail-item', { active: !rootId }]" @click="selectRoot()">全部课程</view>
+        <view v-for="c in categories" :key="c.id" :class="['rail-item', { active: rootId === c.id }]" @click="selectRoot(c.id)">
           {{ c.name }}
         </view>
       </scroll-view>
-      <!-- 线上精品课只按部位分类，不显示系列 / 专区 -->
-      <scroll-view v-if="children.length && !isOnline" scroll-x class="chips">
-        <view :class="['chip', { active: !childId }]" @click="selectChild()">全部</view>
-        <view v-for="c in children" :key="c.id" :class="['chip', { active: childId === c.id }]" @click="selectChild(c.id)">
-          {{ c.name }}
+
+      <scroll-view scroll-y class="pane" :scroll-top="paneTop" @scrolltolower="fetchPage()">
+        <view class="pane-head">
+          <text class="pane-title">{{ rootName || '全部课程' }}</text>
+          <text v-if="loaded" class="pane-count">{{ total }} 门</text>
         </view>
+
+        <!-- 线下精品课：线下会议日程入口 -->
+        <view v-if="isOffline" class="schedule" @click="goSchedule">
+          <image :src="staticUrl('/static/icons/schedule.png')" class="schedule-icon" mode="aspectFit" />
+          <text class="schedule-text">线下会议日程 · 查看课程安排</text>
+          <text class="schedule-go">→</text>
+        </view>
+
+        <!-- 线上精品课只按部位分类；其他分类显示二级分类 -->
+        <view v-if="isOnline" class="parts">
+          <view :class="['part', { active: !bodyPart }]" @click="selectPart()">
+            <view class="part-icon all">全</view>
+            <text class="part-name">全部</text>
+          </view>
+          <view v-for="p in PARTS" :key="p" :class="['part', { active: bodyPart === p }]" @click="selectPart(p)">
+            <view class="part-icon"><image :src="staticUrl(`/static/parts/${p.toLowerCase()}.png`)" mode="aspectFit" class="part-img" /></view>
+            <text class="part-name">{{ BodyPartLabel[p] }}</text>
+          </view>
+        </view>
+        <view v-else-if="children.length" class="chips">
+          <text :class="['chip', { active: !childId }]" @click="selectChild()">全部</text>
+          <text v-for="c in children" :key="c.id" :class="['chip', { active: childId === c.id }]" @click="selectChild(c.id)">{{ c.name }}</text>
+        </view>
+
+        <view class="list">
+          <ProductCard v-for="p in list" :key="p.id" :product="p" :layout="p.type === 'OFFLINE' ? 'event' : 'list'" />
+        </view>
+        <view class="muted footer">{{ loading ? '加载中…' : finished ? (list.length ? '没有更多了' : '暂无课程') : '' }}</view>
       </scroll-view>
     </view>
-
-    <!-- 线下精品课：多一个「线下会议日程」入口 -->
-    <view v-if="isOffline" class="card schedule" @click="goSchedule">
-      <view>
-        <view class="schedule-title">线下会议日程</view>
-        <view class="muted">查看课程安排与日程，加入我的学习计划</view>
-      </view>
-      <text class="schedule-go">查看日程 →</text>
-    </view>
-
-    <!-- 线上精品课：按部位分类（唯一的二级筛选） -->
-    <view v-if="isOnline" class="card parts">
-      <view class="parts-title">按部位</view>
-      <scroll-view scroll-x class="part-row">
-        <view :class="['part', { active: !bodyPart }]" @click="selectPart()">
-          <view class="part-icon all">全</view>
-          <text class="part-name">全部</text>
-        </view>
-        <view v-for="p in PARTS" :key="p" :class="['part', { active: bodyPart === p }]" @click="selectPart(p)">
-          <view class="part-icon"><image :src="staticUrl(`/static/parts/${p.toLowerCase()}.png`)" mode="aspectFit" class="part-img" /></view>
-          <text class="part-name">{{ BodyPartLabel[p] }}</text>
-        </view>
-      </scroll-view>
-    </view>
-
-    <view class="card-grid">
-      <ProductCard v-for="p in list" :key="p.id" :product="p" layout="grid" />
-    </view>
-    <view class="muted footer">{{ loading ? '加载中…' : finished ? (list.length ? '没有更多了' : '暂无课程') : '' }}</view>
   </CertGate>
 </template>
 
 <script setup lang="ts">
-import { onReachBottom, onShow } from '@dcloudio/uni-app';
+import { onShow } from '@dcloudio/uni-app';
 import { BodyPart, BodyPartLabel } from '@luoji/shared';
 import { computed, ref } from 'vue';
 import { api, type Category, type ProductCard as Card } from '@/api';
@@ -69,6 +68,10 @@ const list = ref<Card[]>([]);
 const page = ref(1);
 const loading = ref(false);
 const finished = ref(false);
+const loaded = ref(false);
+const total = ref(0);
+/** 切换分类时右侧列表回到顶部（值变化才会触发滚动，所以在两个相近值之间切换） */
+const paneTop = ref(0);
 
 const children = computed(() => categories.value.find((c) => c.id === rootId.value)?.children ?? []);
 const rootName = computed(() => categories.value.find((c) => c.id === rootId.value)?.name ?? '');
@@ -85,7 +88,10 @@ async function fetchPage(reset = false) {
   try {
     const res = await api.products({ page: page.value, pageSize: 20, categoryId: childId.value ?? rootId.value, bodyPart: bodyPart.value });
     list.value = reset ? res.list : [...list.value, ...res.list];
+    total.value = res.total;
     finished.value = list.value.length >= res.total;
+    loaded.value = true;
+    if (reset) paneTop.value = paneTop.value ? 0 : 0.01;
     page.value += 1;
   } finally {
     loading.value = false;
@@ -130,138 +136,156 @@ onShow(async () => {
     fetchPage(true);
   } else if (!list.value.length) fetchPage(true);
 });
-onReachBottom(() => fetchPage());
 </script>
 
 <style lang="scss" scoped>
-.nav {
-  padding-bottom: 8rpx;
+/* 页面高度减去导航栏和底部 Tab（H5 下由 uni 提供这两个变量，小程序中为 0） */
+.layout {
+  display: flex;
+  height: calc(100vh - var(--window-top) - var(--window-bottom));
+  background: #fff;
 }
-.tabs,
-.chips {
-  white-space: nowrap;
-  padding: 0 28rpx;
+.rail {
+  width: 188rpx;
+  flex-shrink: 0;
+  height: 100%;
+  background: $bg;
 }
-.tab {
-  display: inline-block;
+.rail-item {
   position: relative;
-  padding: 24rpx 4rpx 18rpx;
-  margin-right: 44rpx;
-  font-size: 28rpx;
+  padding: 34rpx 20rpx 34rpx 28rpx;
+  font-size: 24rpx;
   color: $text-secondary;
+  line-height: 1.4;
   &.active {
-    color: $text;
+    background: #fff;
+    color: $brand-deep;
     font-weight: 600;
-    &::after {
+    &::before {
       content: '';
       position: absolute;
-      left: 50%;
-      bottom: 6rpx;
-      width: 36rpx;
-      height: 8rpx;
-      margin-left: -18rpx;
-      border-radius: 8rpx;
-      background: $brand-grad;
+      left: 0;
+      top: 30rpx;
+      bottom: 30rpx;
+      width: 6rpx;
+      border-radius: 0 6rpx 6rpx 0;
+      background: $brand;
     }
   }
 }
-.chips {
-  padding-top: 12rpx;
-  padding-bottom: 8rpx;
+.pane {
+  flex: 1;
+  height: 100%;
+  min-width: 0;
 }
-.chip {
-  display: inline-block;
-  padding: 10rpx 26rpx;
-  margin-right: 16rpx;
-  border-radius: 999rpx;
-  font-size: 24rpx;
-  background: rgba(255, 255, 255, 0.8);
-  color: $text-secondary;
-  &.active {
-    background: $brand;
-    color: #fff;
-    font-weight: 500;
-  }
+.pane-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 28rpx 28rpx 12rpx;
+}
+.pane-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: $brand-deep;
+}
+.pane-count {
+  font-size: 22rpx;
+  color: $text-weak;
 }
 .schedule {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  background: linear-gradient(110deg, #ffffff 30%, #e6efff);
+  gap: 14rpx;
+  margin: 8rpx 28rpx 4rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 16rpx;
+  background: $brand-soft;
 }
-.schedule-title {
-  font-size: 28rpx;
-  font-weight: 600;
-  margin-bottom: 4rpx;
+.schedule-icon {
+  width: 36rpx;
+  height: 36rpx;
 }
-.schedule-go {
-  flex-shrink: 0;
+.schedule-text {
+  flex: 1;
   font-size: 24rpx;
-  color: $brand;
-  font-weight: 500;
-}
-.parts {
-  padding: 24rpx 0 20rpx;
-}
-.parts-title {
-  padding: 0 28rpx 12rpx;
-  font-size: 26rpx;
-  font-weight: 600;
   color: $brand-deep;
 }
-.part-row {
-  white-space: nowrap;
-  padding: 0 16rpx;
+.schedule-go {
+  color: $brand;
+}
+.parts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  row-gap: 18rpx;
+  margin: 8rpx 20rpx 0;
+  padding: 20rpx 0 22rpx;
+  border-bottom: 1rpx solid $line;
 }
 .part {
-  display: inline-flex;
+  display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8rpx;
-  width: 116rpx;
+  gap: 6rpx;
 }
 .part-icon {
-  width: 88rpx;
-  height: 88rpx;
-  border-radius: 26rpx;
-  background: linear-gradient(160deg, #f3f7ff, #e2ecff);
+  width: 76rpx;
+  height: 76rpx;
+  border-radius: 22rpx;
+  background: $brand-soft;
   border: 2rpx solid transparent;
   display: flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
   &.all {
-    font-size: 28rpx;
+    font-size: 26rpx;
     font-weight: 600;
     color: $brand;
   }
 }
 .part-img {
-  width: 66rpx;
-  height: 66rpx;
+  width: 56rpx;
+  height: 56rpx;
 }
 .part-name {
-  font-size: 22rpx;
+  font-size: 20rpx;
   color: $text-secondary;
 }
 .part.active {
   .part-icon {
     border-color: $brand;
-    background: linear-gradient(160deg, #e6efff, #cfe0ff);
+    background: $brand-light;
   }
   .part-name {
     color: $brand;
     font-weight: 600;
   }
 }
-.card-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 22rpx;
-  padding: 20rpx 28rpx 0;
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14rpx;
+  padding: 8rpx 28rpx 18rpx;
+  border-bottom: 1rpx solid $line;
+}
+.chip {
+  padding: 8rpx 20rpx;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  background: $bg;
+  color: $text-secondary;
+  &.active {
+    background: $brand-light;
+    color: $brand;
+    font-weight: 500;
+  }
+}
+.list {
+  padding: 0 28rpx;
 }
 .footer {
   text-align: center;
-  padding: 28rpx 0 36rpx;
+  padding: 24rpx 0 40rpx;
 }
 </style>

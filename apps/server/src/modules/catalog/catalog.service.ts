@@ -14,7 +14,7 @@ function ruleView(base: number, rules: PriceRule[]) {
   return r && { type: r.type, endAt: r.endAt };
 }
 
-/** 课程卡片字段（线下课附带未开始场次的定金，用于展示“定金 ¥x 起”） */
+/** 课程卡片字段（线下课附带未开始的场次：最低定金“定金 ¥x 起”、最近一场的日期与名称） */
 const cardSelect = () =>
   ({
     id: true,
@@ -28,7 +28,11 @@ const cardSelect = () =>
     keywords: true,
     bodyParts: true,
     priceRules: { where: { enabled: true } },
-    sessions: { where: { enabled: true, startAt: { gt: new Date() } }, select: { depositCent: true } },
+    sessions: {
+      where: { enabled: true, startAt: { gt: new Date() } },
+      orderBy: { startAt: 'asc' },
+      select: { depositCent: true, startAt: true, title: true },
+    },
   }) satisfies Prisma.ProductSelect;
 
 function toCard({ priceRules, sessions, ...p }: Prisma.ProductGetPayload<{ select: ReturnType<typeof cardSelect> }>) {
@@ -37,6 +41,8 @@ function toCard({ priceRules, sessions, ...p }: Prisma.ProductGetPayload<{ selec
     currentPriceCent: effectivePrice(p.priceCent, priceRules),
     priceRule: ruleView(p.priceCent, priceRules),
     minDepositCent: p.type === 'OFFLINE' && sessions.length ? Math.min(...sessions.map((x) => x.depositCent)) : null,
+    /** 线下课最近一场：首页按日程样式展示 */
+    nextSession: p.type === 'OFFLINE' && sessions.length ? { startAt: sessions[0].startAt, title: sessions[0].title, count: sessions.length } : null,
   };
 }
 
