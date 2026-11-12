@@ -14,7 +14,17 @@ export default defineConfig(({ mode }) => {
       uni(),
       // 演示版页面标题加后缀，便于和正式环境区分
       ...(mode === 'demo'
-        ? [{ name: 'demo-title', transformIndexHtml: (html: string) => html.replace('<title>逻辑解剖</title>', '<title>逻辑解剖 · 演示版</title>') }]
+        ? [
+            {
+              name: 'demo-title',
+              // 电脑 / 平板上按手机宽度居中显示（pages.json 的 maxWidth），两侧铺浅色底；
+              // uni 居中时只设了底部 Tab 外层、下拉刷新层的左右偏移，宽度仍是整屏，会撑出横向滚动条，这里把宽度收回
+              transformIndexHtml: (html: string) =>
+                html
+                  .replace('<title>逻辑解剖</title>', '<title>逻辑解剖 · 演示版</title>')
+                  .replace('</head>', '<style>html,body{background:#dfe7f3}@media (min-width:431px){uni-tabbar.uni-tabbar-bottom{width:auto}uni-page-refresh{max-width:430px}uni-page-body,uni-page-head,uni-tabbar .uni-tabbar{box-shadow:0 0 40px rgba(20,48,111,.08)}}</style></head>'),
+            },
+          ]
         : []),
       // 单文件 HTML 演示版（scripts/build-single-html.mjs）：所有页面打进一个脚本，便于内嵌进一个 HTML
       ...(process.env.DEMO_SINGLE_FILE === '1'

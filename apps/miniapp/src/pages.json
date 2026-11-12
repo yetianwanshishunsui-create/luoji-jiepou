@@ -21,7 +21,10 @@
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "逻辑解剖",
     "navigationBarBackgroundColor": "#E3EDFF",
-    "backgroundColor": "#F5F8FD"
+    "backgroundColor": "#F5F8FD",
+    "maxWidth": 430,
+    "rpxCalcMaxDeviceWidth": 430,
+    "rpxCalcBaseDeviceWidth": 375
   },
   "tabBar": {
     "color": "#6B7385",
