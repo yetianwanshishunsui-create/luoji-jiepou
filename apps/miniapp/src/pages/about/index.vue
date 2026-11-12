@@ -18,14 +18,14 @@
 
     <!-- 公司介绍 -->
     <view class="card">
-      <view class="sec-head"><view><text class="sec-title">品牌介绍</text><text class="sec-en">About</text></view></view>
+      <view class="sec-head"><view><text class="sec-title">品牌介绍</text></view></view>
       <view class="company-title">{{ about.company.title }}</view>
       <view v-for="(p, i) in about.company.paragraphs" :key="i" class="para">{{ p }}</view>
     </view>
 
     <!-- 创始人 -->
     <view class="card founder">
-      <view class="sec-head"><view><text class="sec-title">创始人</text><text class="sec-en">Founder</text></view></view>
+      <view class="sec-head"><view><text class="sec-title">创始人</text></view></view>
       <view class="founder-main">
         <image v-if="about.founder.photo" :src="about.founder.photo" mode="aspectFill" class="photo" />
         <view v-else class="photo monogram">{{ about.founder.name.slice(0, 1) }}</view>

@@ -2,10 +2,12 @@
  * 渲染小程序用到的图片素材（结果提交到仓库，平时不需要运行）：
  * - static/brand/wordmark*.png  「逻辑解剖」刀锋字标（思源宋体 Heavy + 斜切）
  * - static/parts/*.png          按部位分类的小图标
+ * - static/icons/*.png          首页入口、「我的」服务的细线图标（深蓝线条 + 品牌蓝点缀）
+ * - static/tabbar/*.png         底部 Tab 图标（同一套线条风格）
  * - static/demo/covers/*.jpg    演示版课程封面（按 src/demo/data.ts 中的 art() 描述生成）
  *
  * 依赖：全局安装的 playwright（含 Chromium）、curl（下载 Google Fonts 子集字体）。
- * 运行：node apps/miniapp/scripts/render-assets.mjs [brand|parts|covers]...（不带参数渲染全部）
+ * 运行：node apps/miniapp/scripts/render-assets.mjs [brand|parts|icons|covers]...（不带参数渲染全部）
  */
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, readdirSync, rmSync } from 'node:fs';
@@ -20,7 +22,7 @@ const require = createRequire(import.meta.url);
 // playwright 不是项目依赖，从全局安装位置加载
 const { chromium } = createRequire(execFileSync('npm', ['root', '-g']).toString().trim() + '/')('playwright');
 
-const targets = new Set(process.argv.slice(2).length ? process.argv.slice(2) : ['brand', 'parts', 'covers']);
+const targets = new Set(process.argv.slice(2).length ? process.argv.slice(2) : ['brand', 'parts', 'icons', 'covers']);
 
 /** 按需下载 Google Fonts 子集（只含用到的字），返回 base64 data URI */
 function font(family, text) {
@@ -100,6 +102,50 @@ if (targets.has('parts')) {
   console.log('部位图标 → static/parts');
 }
 
+// ───────── 线条图标 ─────────
+if (targets.has('icons')) {
+  const INK = '#1f2b46';
+  const ACC = '#2a5bd7';
+  const SOFT = '#dce8ff';
+  const line = (d, c = INK) => `<path d="${d}" fill="none" stroke="${c}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`;
+  const fill = (d, c = ACC) => `<path d="${d}" fill="${c}"/>`;
+  const shapes = {
+    offline: line('M9 9h30a3 3 0 0 1 3 3v17a3 3 0 0 1-3 3H9a3 3 0 0 1-3-3V12a3 3 0 0 1 3-3ZM17 32l-4 9M31 32l4 9M24 32v6') + line('M13 25l6-6 5 4 9-9', ACC),
+    online: fill('M8 10h32a2 2 0 0 1 2 2v20a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V12a2 2 0 0 1 2-2Z', SOFT) + line('M9 9h30a3 3 0 0 1 3 3v19a3 3 0 0 1-3 3H9a3 3 0 0 1-3-3V12a3 3 0 0 1 3-3ZM18 41h12M24 34v7') + fill('M20.5 15.5v12l9.5-6z'),
+    free: line('M24 6a6 6 0 0 1 6 6v8a6 6 0 0 1-12 0v-8a6 6 0 0 1 6-6ZM12 20a12 12 0 0 0 24 0M24 32v9M18 41h12') + line('M21.5 13h5M21.5 18h5', ACC),
+    schedule: line('M11 10h26a4 4 0 0 1 4 4v23a4 4 0 0 1-4 4H11a4 4 0 0 1-4-4V14a4 4 0 0 1 4-4ZM7 19h34M16 6v8M32 6v8') + fill('M16.5 25h5a1.5 1.5 0 0 1 1.5 1.5v5a1.5 1.5 0 0 1-1.5 1.5h-5a1.5 1.5 0 0 1-1.5-1.5v-5a1.5 1.5 0 0 1 1.5-1.5Z'),
+    coupon: fill('M10 13h20v22H10a3 3 0 0 1-3-3v-5a4 4 0 0 0 0-6v-5a3 3 0 0 1 3-3Z', SOFT) + line('M10 12h28a3 3 0 0 1 3 3v5a4 4 0 0 0 0 8v5a3 3 0 0 1-3 3H10a3 3 0 0 1-3-3v-5a4 4 0 0 0 0-8v-5a3 3 0 0 1 3-3Z') + line('M31 13v22', INK).replace('stroke-width="2.2"', 'stroke-width="2.2" stroke-dasharray="2.5 3"') + line('M15 19l4 4.5 4-4.5M19 23.5V31M15.5 26h7', ACC),
+    brand: line('M24 13c-4-3-10-4-16-3v25c6-1 12 0 16 3 4-3 10-4 16-3V10c-6-1-12 0-16 3ZM24 13v25') + line('M12.5 17.5h7M12.5 22.5h7M28.5 17.5h7', ACC),
+    order: line('M13 9h22a3 3 0 0 1 3 3v27a3 3 0 0 1-3 3H13a3 3 0 0 1-3-3V12a3 3 0 0 1 3-3Z') + fill('M19 5h10a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H19a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z', SOFT) + line('M19 5h10a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H19a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z') + line('M16 21h16M16 28h16M16 35h9', ACC),
+    enroll: line('M10 11h28a3 3 0 0 1 3 3v20a3 3 0 0 1-3 3H10a3 3 0 0 1-3-3V14a3 3 0 0 1 3-3ZM11.5 32a6 6 0 0 1 11 0') + fill('M17 18a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z') + line('M28 20h8M28 26h8', ACC),
+    favorite: fill('M24 7l5 11 12 1.3-9 8 2.6 11.7L24 33l-10.6 6 2.6-11.7-9-8L19 18z', SOFT) + line('M24 7l5 11 12 1.3-9 8 2.6 11.7L24 33l-10.6 6 2.6-11.7-9-8L19 18z') + fill('M24 16.9L26.1 21.5L31.1 22.1L27.4 25.4L28.5 30.3L24 27.8L19.5 30.3L20.6 25.4L16.9 22.1L21.9 21.5Z'),
+    cert: line('M24 6l14 5v10c0 10-6 17-14 21-8-4-14-11-14-21V11z') + line('M18 23.5l4.5 4.5 8-9', ACC),
+    gift: fill('M11 26h26v13a2 2 0 0 1-2 2H13a2 2 0 0 1-2-2z', SOFT) + line('M10 18h28a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2ZM11 26v13a2 2 0 0 0 2 2h22a2 2 0 0 0 2-2V26M24 18v23') + line('M24 18c-3-6-10-8-11-3-.6 3 5 3 11 3 6 0 11.6 0 11-3-1-5-8-3-11 3', ACC),
+  };
+  const dir = join(STATIC, 'icons');
+  mkdirSync(dir, { recursive: true });
+  for (const [name, body] of Object.entries(shapes)) {
+    await snap(`<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">${body}</svg>`, 48, 48, join(dir, `${name}.png`), { scale: 3 });
+  }
+
+  // 底部 Tab：未选中为灰色线条，选中为品牌蓝线条 + 浅蓝填充
+  const tabs = {
+    home: { soft: 'M12 21l12-10 12 10v17H12z', line: 'M8 22l16-13 16 13M12 19v19a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2V19M20 40V29h8v11' },
+    course: { soft: 'M10 9h22v28H10z', line: 'M12 8h22a2 2 0 0 1 2 2v28H12a3 3 0 0 1-3-3V11a3 3 0 0 1 3-3ZM9 35a3 3 0 0 1 3-3h24M39 14v28H15M17 16h11M17 22h7' },
+    learning: { soft: 'M24 8a16 16 0 1 1 0 32 16 16 0 0 1 0-32Z', line: 'M24 7a17 17 0 1 1 0 34 17 17 0 0 1 0-34ZM20.5 17v14l11-7z' },
+    mine: { soft: 'M24 8a8 8 0 1 1 0 16 8 8 0 0 1 0-16Z', line: 'M24 7a9 9 0 1 1 0 18 9 9 0 0 1 0-18ZM9 41a15 15 0 0 1 30 0' },
+  };
+  const tabDir = join(STATIC, 'tabbar');
+  for (const [name, t] of Object.entries(tabs)) {
+    for (const active of [false, true]) {
+      const c = active ? ACC : '#9aa3b7';
+      const body = `${active ? `<path d="${t.soft}" fill="${SOFT}"/>` : ''}<path d="${t.line}" fill="none" stroke="${c}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`;
+      await snap(`<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">${body}</svg>`, 48, 48, join(tabDir, `${name}${active ? '-active' : ''}.png`), { scale: 2 });
+    }
+  }
+  console.log('线条图标 → static/icons、static/tabbar');
+}
+
 // ───────── 演示封面 ─────────
 if (targets.has('covers')) {
   const esbuild = require('esbuild');
@@ -120,11 +166,18 @@ if (targets.has('covers')) {
     const wide = w / h > 2;
     const dark = t.title === '#ffffff';
     const pad = w * (wide ? 0.06 : 0.075);
-    const size = Math.min(h * (wide ? 0.15 : 0.12), (w * (wide ? 0.6 : 0.82)) / Math.max(...c.lines.map((l) => l.length)));
-    const top = h * 0.47 - ((c.lines.length - 1) * size * 1.28) / 2;
+    const size = c.hero
+      ? Math.min(h * 0.095, (w * 0.8) / Math.max(...c.lines.map((l) => l.length)))
+      : Math.min(h * (wide ? 0.15 : 0.12), (w * (wide ? 0.6 : 0.82)) / Math.max(...c.lines.map((l) => l.length)));
+    // 通铺大图上方约 30% 被透明导航栏盖住，下方约 12% 被入口卡片盖住
+    const top = (c.hero ? h * 0.56 : h * 0.47) - ((c.lines.length - 1) * size * 1.28) / 2;
+    const labelY = c.hero ? top - size * 1.25 : h * 0.16;
     const titles = c.lines.map((l, i) => `<text x="${pad}" y="${top + i * size * 1.28}" font-family="T" font-weight="700" font-size="${size}" letter-spacing="${size * 0.04}" fill="${t.title}">${esc(l)}</text>`).join('');
     const lineY = top + (c.lines.length - 1) * size * 1.28 + size * 0.55;
-    const tagW = c.tag.length * h * 0.05 + h * 0.07;
+    const tagH = c.hero ? h * 0.065 : h * 0.1;
+    const tagW = c.tag.length * (c.hero ? h * 0.034 : h * 0.05) + tagH * 0.7;
+    const tagY = c.hero ? lineY + h * 0.12 : h - pad * 0.7 - tagH;
+    const tagX = c.hero ? pad : w - pad - tagW;
     // 右侧的层次弧线：呼应「逐层解剖」
     const arcs = [0.28, 0.4, 0.52, 0.64, 0.76]
       .map((r, i) => `<circle cx="${w * 0.98}" cy="${h * 0.5}" r="${h * r}" fill="none" stroke="${t.line}" stroke-opacity="${0.55 - i * 0.08}" stroke-width="${i === 1 ? 2 : 1}"/>`)
@@ -138,13 +191,13 @@ if (targets.has('covers')) {
   <rect width="${w}" height="${h}" fill="url(#glow)"/>
   ${arcs}
   <circle cx="${w * 0.98 - h * 0.4}" cy="${h * 0.5}" r="${h * 0.012}" fill="${t.accent}"/>
-  <text x="${pad}" y="${h * 0.16}" font-family="S" font-weight="500" font-size="${h * 0.048}" letter-spacing="${h * 0.012}" fill="${t.accent}">逻辑解剖 · LOGIC ANATOMY</text>
+  <text x="${pad}" y="${labelY}" font-family="S" font-weight="500" font-size="${c.hero ? h * 0.032 : h * 0.048}" letter-spacing="${h * 0.012}" fill="${t.accent}">逻辑解剖 · LOGIC ANATOMY</text>
   ${titles}
   <rect x="${pad}" y="${lineY}" width="${h * 0.12}" height="${h * 0.012}" rx="${h * 0.006}" fill="${t.accent}"/>
-  <text x="${pad}" y="${lineY + h * 0.1}" font-family="S" font-size="${h * 0.052}" fill="${t.sub}">${esc(c.sub)}</text>
+  <text x="${pad}" y="${lineY + (c.hero ? h * 0.075 : h * 0.1)}" font-family="S" font-size="${c.hero ? h * 0.036 : h * 0.052}" fill="${t.sub}">${esc(c.sub)}</text>
   ${
     c.tag
-      ? `<rect x="${w - pad - tagW}" y="${h - pad * 0.7 - h * 0.1}" width="${tagW}" height="${h * 0.1}" rx="${h * 0.05}" fill="${dark ? '#ffffff' : t.accent}"/><text x="${w - pad - tagW / 2}" y="${h - pad * 0.7 - h * 0.034}" text-anchor="middle" font-family="S" font-weight="500" font-size="${h * 0.048}" fill="${dark ? '#1d3c8f' : '#ffffff'}">${esc(c.tag)}</text>`
+      ? `<rect x="${tagX}" y="${tagY}" width="${tagW}" height="${tagH}" rx="${tagH / 2}" fill="${dark ? '#ffffff' : t.accent}"/><text x="${tagX + tagW / 2}" y="${tagY + tagH * 0.66}" text-anchor="middle" font-family="S" font-weight="500" font-size="${tagH * 0.48}" fill="${dark ? '#1d3c8f' : '#ffffff'}">${esc(c.tag)}</text>`
       : ''
   }
 </svg>`;

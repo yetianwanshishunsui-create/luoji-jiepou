@@ -41,10 +41,10 @@
       </scroll-view>
     </view>
 
-    <view class="card">
-      <ProductCard v-for="p in list" :key="p.id" :product="p" />
-      <view class="muted footer">{{ loading ? '加载中…' : finished ? (list.length ? '没有更多了' : '暂无课程') : '' }}</view>
+    <view class="card-grid">
+      <ProductCard v-for="p in list" :key="p.id" :product="p" layout="grid" />
     </view>
+    <view class="muted footer">{{ loading ? '加载中…' : finished ? (list.length ? '没有更多了' : '暂无课程') : '' }}</view>
   </CertGate>
 </template>
 
@@ -253,8 +253,14 @@ onReachBottom(() => fetchPage());
     font-weight: 600;
   }
 }
+.card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22rpx;
+  padding: 20rpx 28rpx 0;
+}
 .footer {
   text-align: center;
-  padding: 24rpx 0 8rpx;
+  padding: 28rpx 0 36rpx;
 }
 </style>

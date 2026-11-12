@@ -1,6 +1,6 @@
 <template>
   <!-- 认证准入：未认证时替代页面内容，引导用户认证 -->
-  <view v-if="!user.certified" class="gate card">
+  <view v-if="!user.certified" class="gate card" :style="underNav ? { marginTop: `calc(${navBarHeight()}px + 60rpx)` } : undefined">
     <image class="gate-mark" src="/static/brand/wordmark.png" mode="heightFix" />
     <view class="gate-slogan">以解剖立学 · 以临床立教</view>
     <view class="title">{{ title }}</view>
@@ -14,6 +14,10 @@
 import { CertStatus } from '@luoji/shared';
 import { computed } from 'vue';
 import { useUserStore } from '@/stores/user';
+import { navBarHeight } from '@/utils/nav';
+
+/** 页面用了透明自定义导航栏时，空态需要多留出导航栏的高度 */
+defineProps<{ underNav?: boolean }>();
 
 const user = useUserStore();
 const status = computed(() => user.profile?.certStatus ?? CertStatus.UNSUBMITTED);

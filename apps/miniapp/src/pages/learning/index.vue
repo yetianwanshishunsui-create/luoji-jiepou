@@ -3,7 +3,7 @@
     <!-- 我的日程：线下会议日程里加入计划 / 已报名的场次 -->
     <view class="card">
       <view class="sec-head">
-        <view><text class="sec-title">我的日程</text><text class="sec-en">Schedule</text></view>
+        <view><text class="sec-title">我的日程</text></view>
         <text class="sec-more" @click="goSchedule('mine')">全部 ›</text>
       </view>
       <view v-for="p in plans.slice(0, 3)" :key="p.id" class="plan" @click="goSchedule('mine')">
@@ -25,7 +25,7 @@
 
     <view class="card">
       <view class="sec-head">
-        <view><text class="sec-title">我的课程</text><text class="sec-en">My Courses</text></view>
+        <view><text class="sec-title">我的课程</text></view>
       </view>
       <view v-for="c in courses" :key="c.id" class="item" @click="open(c)">
         <image v-if="c.cover" :src="c.cover" class="cover" mode="aspectFill" />

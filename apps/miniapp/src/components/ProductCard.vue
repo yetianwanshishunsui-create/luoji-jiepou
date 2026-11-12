@@ -1,5 +1,5 @@
 <template>
-  <view class="item" @click="open">
+  <view :class="['item', `is-${layout}`]" @click="open">
     <view class="cover-box">
       <image v-if="product.cover" class="cover" :src="product.cover" mode="aspectFill" />
       <view v-else class="cover" />
@@ -31,7 +31,8 @@ import { ProductTypeLabel } from '@luoji/shared';
 import type { ProductCard } from '@/api';
 import { money } from '@/utils/format';
 
-const props = defineProps<{ product: ProductCard }>();
+/** row：左图右文（默认）；grid：上图下文，用于两列网格 */
+const props = withDefaults(defineProps<{ product: ProductCard; layout?: 'row' | 'grid' }>(), { layout: 'row' });
 const open = () => uni.navigateTo({ url: `/pages/course/detail?id=${props.product.id}` });
 </script>
 
@@ -59,10 +60,10 @@ const open = () => uni.navigateTo({ url: `/pages/course/detail?id=${props.produc
 }
 .type {
   position: absolute;
-  left: 0;
+  right: 0;
   top: 0;
   padding: 2rpx 12rpx;
-  border-radius: 16rpx 0 12rpx 0;
+  border-radius: 0 16rpx 0 12rpx;
   background: rgba(20, 48, 111, 0.72);
   color: #fff;
   font-size: 20rpx;
@@ -117,6 +118,46 @@ const open = () => uni.navigateTo({ url: `/pages/course/detail?id=${props.produc
 }
 .bottom {
   margin-top: auto;
+}
+
+/* ───── 两列网格 ───── */
+.item.is-grid {
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  border: none;
+  border-radius: 20rpx;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 8rpx 28rpx rgba(20, 48, 111, 0.07);
+  .cover-box {
+    width: 100%;
+  }
+  .cover {
+    width: 100%;
+    height: 220rpx;
+    border-radius: 0;
+  }
+  .type {
+    border-radius: 0 0 0 12rpx;
+  }
+  .info {
+    padding: 18rpx 20rpx 20rpx;
+    min-height: 168rpx;
+    box-sizing: border-box;
+  }
+  .title {
+    font-size: 27rpx;
+  }
+  .kws {
+    margin-top: 8rpx;
+  }
+  .sub {
+    margin-top: 6rpx;
+  }
+  .bottom {
+    padding-top: 10rpx;
+  }
 }
 .free {
   color: $brand;

@@ -1,6 +1,6 @@
 <template>
   <view class="card">
-    <view class="sec-head"><view><text class="sec-title">选择场次</text><text class="sec-en">Sessions</text></view></view>
+    <view class="sec-head"><view><text class="sec-title">选择场次</text></view></view>
     <view v-if="loaded && !sessions.length" class="muted empty">暂无可报名的场次，敬请期待</view>
     <view
       v-for="s in sessions"

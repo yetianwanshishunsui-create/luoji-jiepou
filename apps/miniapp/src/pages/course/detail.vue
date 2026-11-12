@@ -42,7 +42,7 @@
     </view>
 
     <view v-if="product.items.length" class="card">
-      <view class="sec-head"><view><text class="sec-title">包含课程</text><text class="sec-en">Contents</text></view></view>
+      <view class="sec-head"><view><text class="sec-title">包含课程</text></view></view>
       <view v-for="it in product.items" :key="it.id" class="row item-row" @click="openProduct(it.id)">
         <text class="item-title">{{ it.title }}</text>
         <text class="muted">›</text>
@@ -50,7 +50,7 @@
     </view>
 
     <view v-if="product.chapters.length" class="card">
-      <view class="sec-head"><view><text class="sec-title">课程目录</text><text class="sec-en">Syllabus</text></view></view>
+      <view class="sec-head"><view><text class="sec-title">课程目录</text></view></view>
       <view v-for="ch in product.chapters" :key="ch.id">
         <view class="chapter">{{ ch.title }}</view>
         <view v-for="l in ch.lessons" :key="l.id" class="row lesson" @click="play(l)">
@@ -65,7 +65,7 @@
 
     <!-- 3. 课程详情 -->
     <view v-if="product.detailHtml" class="card">
-      <view class="sec-head"><view><text class="sec-title">课程详情</text><text class="sec-en">Details</text></view></view>
+      <view class="sec-head"><view><text class="sec-title">课程详情</text></view></view>
       <rich-text :nodes="product.detailHtml" />
     </view>
 

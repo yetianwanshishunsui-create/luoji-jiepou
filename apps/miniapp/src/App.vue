@@ -44,17 +44,25 @@ page {
   justify-content: space-between;
   margin-bottom: 12rpx;
 }
+/* 区块标题：左侧渐变竖条 + 标题 */
 .sec-title {
+  position: relative;
+  padding-left: 22rpx;
   font-size: 34rpx;
   font-weight: 600;
   letter-spacing: 1rpx;
-}
-.sec-en {
-  margin-left: 14rpx;
-  font-size: 20rpx;
-  letter-spacing: 3rpx;
-  color: $text-weak;
-  text-transform: uppercase;
+  color: $brand-deep;
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 8rpx;
+    height: 32rpx;
+    margin-top: -16rpx;
+    border-radius: 8rpx;
+    background: linear-gradient(180deg, #6d9cff, $brand);
+  }
 }
 .sec-more {
   font-size: 24rpx;

@@ -8,6 +8,9 @@ export interface CourseFilter {
 
 let pending: CourseFilter | null = null;
 
+/** 透明自定义导航栏（状态栏 + 44px）的总高度，单位 px；CSS 变量 --status-bar-height 在小程序里是固定值，不能用 */
+export const navBarHeight = () => (uni.getSystemInfoSync().statusBarHeight ?? 0) + 44;
+
 export function openCourses(filter: CourseFilter) {
   pending = filter;
   uni.switchTab({ url: '/pages/course/list' });
