@@ -104,7 +104,7 @@ const goCourses = () => uni.switchTab({ url: '/pages/course/list' });
   margin: 28rpx 0 20rpx;
 }
 .hero-slogan {
-  font-size: 30rpx;
+  font-size: 28rpx;
   letter-spacing: 10rpx;
   color: #fff;
 }
@@ -130,7 +130,7 @@ const goCourses = () => uni.switchTab({ url: '/pages/course/list' });
 .quote-text {
   position: relative;
   font-family: 'Songti SC', 'STSong', 'Noto Serif SC', serif;
-  font-size: 30rpx;
+  font-size: 28rpx;
   line-height: 2;
   letter-spacing: 2rpx;
   color: $brand-deep;
@@ -143,13 +143,13 @@ const goCourses = () => uni.switchTab({ url: '/pages/course/list' });
 }
 .company-title {
   margin: 8rpx 0 12rpx;
-  font-size: 30rpx;
+  font-size: 28rpx;
   font-weight: 600;
   color: $brand-deep;
 }
 .para {
   margin-top: 16rpx;
-  font-size: 28rpx;
+  font-size: 26rpx;
   line-height: 1.9;
   color: #36405a;
   text-align: justify;
@@ -182,7 +182,7 @@ const goCourses = () => uni.switchTab({ url: '/pages/course/list' });
   min-width: 0;
 }
 .founder-name {
-  font-size: 44rpx;
+  font-size: 40rpx;
   font-weight: 600;
   letter-spacing: 6rpx;
 }
@@ -228,7 +228,7 @@ const goCourses = () => uni.switchTab({ url: '/pages/course/list' });
   background: $brand-soft;
 }
 .stat-value {
-  font-size: 48rpx;
+  font-size: 42rpx;
   font-weight: 700;
   color: $brand;
   line-height: 1.2;

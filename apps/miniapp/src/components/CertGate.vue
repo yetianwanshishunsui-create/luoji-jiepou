@@ -50,7 +50,7 @@ const goCert = () => uni.navigateTo({ url: '/pages/cert/index' });
   color: $text-secondary;
 }
 .title {
-  font-size: 36rpx;
+  font-size: 32rpx;
   font-weight: 600;
 }
 .desc {

@@ -180,7 +180,7 @@ watch(
 }
 .sheet-title {
   text-align: center;
-  font-size: 32rpx;
+  font-size: 30rpx;
   font-weight: 600;
   margin-bottom: 12rpx;
 }

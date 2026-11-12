@@ -26,7 +26,7 @@ onLaunch(() => {
 page {
   background: linear-gradient(180deg, #e3edff 0, #eef4ff 320rpx, $bg 640rpx) no-repeat, $bg;
   color: $text;
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-family: -apple-system, 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
   line-height: 1.5;
 }
@@ -48,7 +48,7 @@ page {
 .sec-title {
   position: relative;
   padding-left: 22rpx;
-  font-size: 34rpx;
+  font-size: 30rpx;
   font-weight: 600;
   letter-spacing: 1rpx;
   color: $brand-deep;

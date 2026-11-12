@@ -67,7 +67,7 @@ const copy = () => uni.setClipboardData({ data: config.value?.wechatId ?? '', su
   flex: 1;
 }
 .full-title {
-  font-size: 30rpx;
+  font-size: 28rpx;
   font-weight: 600;
   margin-bottom: 6rpx;
 }
@@ -119,7 +119,7 @@ const copy = () => uni.setClipboardData({ data: config.value?.wechatId ?? '', su
 }
 .sheet-title {
   text-align: center;
-  font-size: 34rpx;
+  font-size: 30rpx;
   font-weight: 600;
   margin-bottom: 8rpx;
 }
@@ -145,7 +145,7 @@ const copy = () => uni.setClipboardData({ data: config.value?.wechatId ?? '', su
   justify-content: center;
   gap: 12rpx;
   color: $brand-deep;
-  font-size: 28rpx;
+  font-size: 26rpx;
   text-align: center;
   padding: 0 40rpx;
   box-sizing: border-box;
@@ -154,7 +154,7 @@ const copy = () => uni.setClipboardData({ data: config.value?.wechatId ?? '', su
   display: flex;
   justify-content: center;
   gap: 24rpx;
-  font-size: 28rpx;
+  font-size: 26rpx;
 }
 .copy {
   color: $brand;

@@ -82,7 +82,7 @@ defineProps<{ review: ReviewView; clamp?: boolean }>();
 }
 .content {
   margin-top: 16rpx;
-  font-size: 28rpx;
+  font-size: 26rpx;
   line-height: 1.7;
   white-space: pre-wrap;
   &.clamp {

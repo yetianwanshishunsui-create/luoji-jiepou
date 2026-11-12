@@ -139,14 +139,14 @@ onReachBottom(() => fetchPage());
   margin-bottom: 6rpx;
 }
 .star {
-  font-size: 30rpx;
+  font-size: 28rpx;
   color: #d9dde6;
   margin-right: 6rpx;
   &.on {
     color: #f5a623;
   }
   &.big {
-    font-size: 48rpx;
+    font-size: 42rpx;
     margin-right: 12rpx;
   }
 }
@@ -189,7 +189,7 @@ onReachBottom(() => fetchPage());
 }
 .sheet-title {
   text-align: center;
-  font-size: 32rpx;
+  font-size: 30rpx;
   font-weight: 600;
   margin-bottom: 24rpx;
 }
@@ -209,7 +209,7 @@ onReachBottom(() => fetchPage());
   box-sizing: border-box;
   border-radius: 12rpx;
   background: $bg;
-  font-size: 28rpx;
+  font-size: 26rpx;
 }
 .count {
   text-align: right;

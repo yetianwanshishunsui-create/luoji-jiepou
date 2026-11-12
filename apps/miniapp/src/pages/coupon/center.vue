@@ -57,7 +57,7 @@ onPullDownRefresh(() => load().finally(() => uni.stopPullDownRefresh()));
   color: #fff;
 }
 .banner-title {
-  font-size: 40rpx;
+  font-size: 36rpx;
   font-weight: 600;
 }
 .banner-sub {

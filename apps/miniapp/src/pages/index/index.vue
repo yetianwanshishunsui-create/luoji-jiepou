@@ -1,21 +1,35 @@
 <template>
-  <NavBar logo :opacity="navOpacity" />
-  <CertGate under-nav>
-    <!-- 通铺大图：从状态栏开始铺满，导航栏透明叠在上面 -->
-    <view class="hero">
-      <swiper v-if="banners.length" class="hero-swiper" circular autoplay :interval="4500" @change="onBanner">
+  <CertGate>
+    <!-- 顶部：品牌故事与创始人 -->
+    <view class="brand" @click="goAbout">
+      <view class="brand-rings" />
+      <view class="brand-text">
+        <image class="brand-mark" src="/static/brand/wordmark.png" mode="heightFix" aria-label="逻辑解剖" />
+        <view class="brand-slogan">以解剖立学 · 以临床立教</view>
+        <view class="founder-line">
+          <text class="founder-name">{{ founder.name }}</text>
+          <text class="founder-title">{{ founder.title }}</text>
+        </view>
+        <view class="brand-go">品牌故事与创始人 ›</view>
+      </view>
+      <image v-if="founder.photo" class="founder-photo" :src="founder.photo" mode="aspectFill" />
+      <view v-else class="founder-photo monogram">{{ founder.name.slice(0, 1) }}</view>
+    </view>
+
+    <!-- 轮播图 -->
+    <view v-if="banners.length" class="banner-wrap">
+      <swiper class="banner" circular autoplay :interval="4500" @change="onBanner">
         <swiper-item v-for="b in banners" :key="b.id" @click="b.link && openLink(b.link)">
-          <image :src="b.image" :aria-label="b.title" mode="aspectFill" class="hero-img" />
+          <image :src="b.image" :aria-label="b.title" mode="aspectFill" class="banner-img" />
         </swiper-item>
       </swiper>
-      <view v-else class="hero-swiper hero-empty" />
       <view class="dots">
         <view v-for="(b, i) in banners" :key="b.id" :class="['dot', { on: i === bannerIndex }]" />
       </view>
     </view>
 
-    <!-- 入口卡片：压住大图底边，3 × 2 线条图标 -->
-    <view class="entry-card">
+    <!-- 入口：3 × 2 线条图标 -->
+    <view class="card entries">
       <view v-for="e in entries" :key="e.name" class="entry" @click="e.go()">
         <image :src="`/static/icons/${e.icon}.png`" class="entry-icon" mode="aspectFit" />
         <text class="entry-name">{{ e.name }}</text>
@@ -42,24 +56,16 @@
       </view>
     </view>
     <view v-if="loaded && !sections.length" class="card muted empty">暂无课程</view>
-
-    <!-- 品牌 -->
-    <view class="brand-card" @click="goAbout">
-      <image class="brand-mark" src="/static/brand/wordmark-white.png" mode="heightFix" />
-      <view class="brand-slogan">以解剖立学 · 以临床立教</view>
-      <view class="brand-desc">析毫剖芒，不可为内 —— 深化面颈部解剖学的理解与应用，提高治疗的安全性与有效性</view>
-      <view class="brand-go">品牌故事与创始人 ›</view>
-    </view>
+    <view class="bottom-space" />
   </CertGate>
 </template>
 
 <script setup lang="ts">
-import { isTabPage } from '@luoji/shared';
-import { onPageScroll, onPullDownRefresh, onShow } from '@dcloudio/uni-app';
-import { computed, ref } from 'vue';
+import { DEFAULT_ABOUT_PAGE, isTabPage, type AboutPageConfig } from '@luoji/shared';
+import { onPullDownRefresh, onShow } from '@dcloudio/uni-app';
+import { ref } from 'vue';
 import { api, type Category, type ProductCard as Card } from '@/api';
 import CertGate from '@/components/CertGate.vue';
-import NavBar from '@/components/NavBar.vue';
 import ProductCard from '@/components/ProductCard.vue';
 import { useUserStore } from '@/stores/user';
 import { openCourseCategory } from '@/utils/nav';
@@ -69,12 +75,8 @@ const banners = ref<{ id: string; title: string; image: string; link: string | n
 const bannerIndex = ref(0);
 const sections = ref<{ title: string; products: Card[] }[]>([]);
 const categories = ref<Category[]>([]);
+const founder = ref<AboutPageConfig['founder']>(DEFAULT_ABOUT_PAGE.founder);
 const loaded = ref(false);
-
-// 导航栏随滚动从透明过渡到白底
-const scrollTop = ref(0);
-onPageScroll((e) => (scrollTop.value = e.scrollTop));
-const navOpacity = computed(() => Math.min(1, scrollTop.value / 160));
 
 /** 按一级分类名称找分类，后台改了排序也能对上 */
 const openRoot = (word: string) => {
@@ -87,8 +89,8 @@ const entries = [
   { name: '线上精品课', icon: 'online', go: () => openRoot('线上') },
   { name: '公益讲堂', icon: 'free', go: () => openRoot('公益') },
   { name: '会议日程', icon: 'schedule', go: () => uni.navigateTo({ url: '/pages/schedule/index' }) },
-  { name: '领券中心', icon: 'coupon', go: () => uni.navigateTo({ url: '/pages/coupon/center' }) },
-  { name: '品牌故事', icon: 'brand', go: () => goAbout() },
+  { name: '领券中心', icon: 'gift', go: () => uni.navigateTo({ url: '/pages/coupon/center' }) },
+  { name: '我的收藏', icon: 'favorite', go: () => uni.navigateTo({ url: '/pages/favorite/index' }) },
 ];
 
 /** 栏目「查看全部」：线下 / 公益栏目进对应分类，其余进线上精品课 */
@@ -100,10 +102,11 @@ async function load() {
     await user.refreshProfile(); // 审核通过后返回首页即可刷新状态
     if (!user.certified) return;
   }
-  const [res, cats] = await Promise.all([api.home(), api.categories()]);
+  const [res, cats, about] = await Promise.all([api.home(), api.categories(), api.aboutPage().catch(() => null)]);
   banners.value = res.banners;
   sections.value = res.sections;
   categories.value = cats;
+  if (about) founder.value = about.founder;
   loaded.value = true;
 }
 
@@ -118,16 +121,99 @@ onPullDownRefresh(() => load().finally(() => uni.stopPullDownRefresh()));
 </script>
 
 <style lang="scss" scoped>
-.hero {
+.brand {
   position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  margin: 20rpx 28rpx 0;
+  padding: 32rpx 28rpx 32rpx 36rpx;
+  border-radius: 28rpx;
+  background: linear-gradient(135deg, #ffffff 0%, #eef4ff 55%, #dbe7ff 100%);
+  box-shadow: 0 12rpx 36rpx rgba(20, 48, 111, 0.08);
 }
-.hero-swiper {
-  height: 640rpx;
+.brand-rings {
+  position: absolute;
+  right: -90rpx;
+  bottom: -150rpx;
+  width: 360rpx;
+  height: 360rpx;
+  border-radius: 50%;
+  border: 2rpx solid rgba(42, 91, 215, 0.12);
+  box-shadow:
+    0 0 0 40rpx rgba(255, 255, 255, 0.4),
+    0 0 0 42rpx rgba(42, 91, 215, 0.08);
 }
-.hero-empty {
-  background: linear-gradient(160deg, #eaf2ff, #cfe0ff);
+.brand-text {
+  position: relative;
+  flex: 1;
+  min-width: 0;
 }
-.hero-img {
+.brand-mark {
+  height: 52rpx;
+  display: block;
+}
+.brand-slogan {
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  letter-spacing: 4rpx;
+  color: #4a5d86;
+}
+.founder-line {
+  margin-top: 26rpx;
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
+}
+.founder-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: $brand-deep;
+}
+.founder-title {
+  font-size: 22rpx;
+  color: $text-secondary;
+}
+.brand-go {
+  display: inline-block;
+  margin-top: 18rpx;
+  padding: 6rpx 20rpx;
+  border-radius: 999rpx;
+  background: $brand-grad;
+  color: #fff;
+  font-size: 22rpx;
+}
+.founder-photo {
+  position: relative;
+  width: 168rpx;
+  height: 224rpx;
+  border-radius: 20rpx;
+  flex-shrink: 0;
+  background: #fff;
+  border: 4rpx solid #fff;
+  box-shadow: 0 10rpx 24rpx rgba(20, 48, 111, 0.14);
+}
+.monogram {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #e6efff, #c9dbff);
+  font-size: 72rpx;
+  font-weight: 600;
+  color: $brand;
+}
+.banner-wrap {
+  position: relative;
+  margin: 24rpx 28rpx 0;
+}
+.banner {
+  height: 296rpx;
+  border-radius: 24rpx;
+  overflow: hidden;
+  transform: translateY(0); /* 修复 iOS 圆角裁剪失效 */
+}
+.banner-img {
   width: 100%;
   height: 100%;
 }
@@ -135,125 +221,81 @@ onPullDownRefresh(() => load().finally(() => uni.stopPullDownRefresh()));
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 118rpx;
+  bottom: 16rpx;
   display: flex;
   justify-content: center;
-  gap: 10rpx;
+  gap: 8rpx;
 }
 .dot {
-  width: 14rpx;
+  width: 12rpx;
   height: 6rpx;
   border-radius: 6rpx;
   background: rgba(42, 91, 215, 0.25);
   transition: width 0.3s;
   &.on {
-    width: 36rpx;
+    width: 30rpx;
     background: $brand;
   }
 }
-.entry-card {
-  position: relative;
-  z-index: 2;
-  margin: -92rpx 28rpx 0;
-  padding: 36rpx 0 12rpx;
-  border-radius: 28rpx;
-  background: #fff;
-  box-shadow: 0 16rpx 44rpx rgba(20, 48, 111, 0.1);
+.entries {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  padding: 30rpx 0 4rpx;
 }
 .entry {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14rpx;
-  padding-bottom: 32rpx;
+  gap: 10rpx;
+  padding-bottom: 26rpx;
 }
 .entry-icon {
-  width: 76rpx;
-  height: 76rpx;
+  width: 60rpx;
+  height: 60rpx;
 }
 .entry-name {
-  font-size: 26rpx;
+  font-size: 24rpx;
   color: $text;
 }
 .join {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 28rpx 28rpx 0;
-  padding: 30rpx 32rpx;
+  margin: 0 28rpx;
+  padding: 26rpx 30rpx;
   border-radius: 24rpx;
   background: linear-gradient(120deg, #eef4ff, #d9e6ff);
 }
 .join-title {
-  font-size: 30rpx;
+  font-size: 26rpx;
   font-weight: 600;
   color: $brand-deep;
   margin-bottom: 4rpx;
 }
 .join-sub {
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: $text-secondary;
 }
 .join-go {
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: $brand;
   font-weight: 500;
 }
 .section {
-  margin-top: 44rpx;
+  margin-top: 36rpx;
   padding: 0 28rpx;
 }
 .card-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 22rpx;
-  margin-top: 8rpx;
+  gap: 20rpx;
+  margin-top: 6rpx;
 }
 .empty {
   padding: 40rpx 0;
   text-align: center;
 }
-.brand-card {
-  position: relative;
-  overflow: hidden;
-  margin: 48rpx 28rpx 40rpx;
-  padding: 44rpx 40rpx;
-  border-radius: 28rpx;
-  background: linear-gradient(140deg, #4a80f5 0%, #2a5bd7 45%, #173a94 100%);
-  color: #fff;
-  &::after {
-    content: '';
-    position: absolute;
-    right: -120rpx;
-    top: -120rpx;
-    width: 380rpx;
-    height: 380rpx;
-    border-radius: 50%;
-    border: 2rpx solid rgba(255, 255, 255, 0.25);
-    box-shadow:
-      0 0 0 46rpx rgba(255, 255, 255, 0.05),
-      0 0 0 48rpx rgba(255, 255, 255, 0.16);
-  }
-}
-.brand-mark {
-  height: 56rpx;
-}
-.brand-slogan {
-  margin-top: 14rpx;
-  font-size: 26rpx;
-  letter-spacing: 8rpx;
-}
-.brand-desc {
-  margin-top: 18rpx;
-  font-size: 24rpx;
-  line-height: 1.7;
-  color: rgba(255, 255, 255, 0.75);
-}
-.brand-go {
-  margin-top: 22rpx;
-  font-size: 24rpx;
-  color: #cfe0ff;
+.bottom-space {
+  height: 40rpx;
 }
 </style>

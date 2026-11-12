@@ -52,7 +52,7 @@ const validText = computed(() =>
   padding: 24rpx 0;
 }
 .amount {
-  font-size: 52rpx;
+  font-size: 46rpx;
   font-weight: 700;
 }
 .unit {

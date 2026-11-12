@@ -75,7 +75,7 @@ const open = () => uni.navigateTo({ url: `/pages/course/detail?id=${props.produc
   flex-direction: column;
 }
 .title {
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 600;
   line-height: 1.45;
   display: -webkit-box;
@@ -147,7 +147,12 @@ const open = () => uni.navigateTo({ url: `/pages/course/detail?id=${props.produc
     box-sizing: border-box;
   }
   .title {
-    font-size: 27rpx;
+    font-size: 25rpx;
+    line-height: 1.5;
+  }
+  .price,
+  .free {
+    font-size: 26rpx;
   }
   .kws {
     margin-top: 8rpx;

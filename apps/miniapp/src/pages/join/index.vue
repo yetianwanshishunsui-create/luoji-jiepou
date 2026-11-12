@@ -109,7 +109,7 @@ onLoad(async () => {
   padding: 48rpx 32rpx;
 }
 .hero-title {
-  font-size: 40rpx;
+  font-size: 36rpx;
   font-weight: 600;
   margin-bottom: 12rpx;
 }
@@ -118,7 +118,7 @@ onLoad(async () => {
   opacity: 0.9;
 }
 .block-title {
-  font-size: 32rpx;
+  font-size: 30rpx;
   font-weight: 600;
   margin-bottom: 20rpx;
 }
@@ -187,7 +187,7 @@ onLoad(async () => {
   padding: 60rpx 0;
 }
 .done-title {
-  font-size: 36rpx;
+  font-size: 32rpx;
   font-weight: 600;
   margin-bottom: 16rpx;
   color: $brand;

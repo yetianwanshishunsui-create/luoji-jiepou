@@ -1,6 +1,6 @@
 {
   "pages": [
-    { "path": "pages/index/index", "style": { "navigationStyle": "custom", "enablePullDownRefresh": true } },
+    { "path": "pages/index/index", "style": { "navigationBarTitleText": "逻辑解剖", "enablePullDownRefresh": true } },
     { "path": "pages/course/list", "style": { "navigationBarTitleText": "课程" } },
     { "path": "pages/learning/index", "style": { "navigationBarTitleText": "学习" } },
     { "path": "pages/mine/index", "style": { "navigationStyle": "custom" } },

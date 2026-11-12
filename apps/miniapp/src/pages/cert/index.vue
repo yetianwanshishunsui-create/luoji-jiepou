@@ -196,7 +196,7 @@ onShow(async () => {
   padding: 60rpx 40rpx;
 }
 .status-title {
-  font-size: 36rpx;
+  font-size: 32rpx;
   font-weight: 600;
   margin-bottom: 24rpx;
 }
@@ -205,7 +205,7 @@ onShow(async () => {
   background: #fff4f1;
 }
 .step {
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 600;
   color: $brand-deep;
   margin-bottom: 20rpx;
@@ -241,7 +241,7 @@ onShow(async () => {
   }
 }
 .identity-name {
-  font-size: 32rpx;
+  font-size: 30rpx;
   font-weight: 600;
 }
 .identity-desc {
@@ -266,14 +266,14 @@ onShow(async () => {
   flex: 1;
   height: 96rpx;
   line-height: 96rpx;
-  font-size: 28rpx;
+  font-size: 26rpx;
 }
 .pick.empty {
   color: #b5bccb;
 }
 .chev {
   color: $text-weak;
-  font-size: 32rpx;
+  font-size: 30rpx;
 }
 .files {
   display: flex;
@@ -295,7 +295,7 @@ onShow(async () => {
   box-sizing: border-box;
 }
 .plus {
-  font-size: 48rpx;
+  font-size: 42rpx;
   line-height: 1;
   color: $brand;
 }

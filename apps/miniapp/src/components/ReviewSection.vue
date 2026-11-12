@@ -43,7 +43,7 @@ watch(() => [props.productId, props.refreshKey], load, { immediate: true });
   margin-bottom: 4rpx;
 }
 .title {
-  font-size: 30rpx;
+  font-size: 28rpx;
   font-weight: 600;
   display: flex;
   align-items: center;

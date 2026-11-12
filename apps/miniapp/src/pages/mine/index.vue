@@ -175,7 +175,7 @@ onShow(async () => {
   border: 6rpx solid rgba(255, 255, 255, 0.9);
   flex-shrink: 0;
   color: #fff;
-  font-size: 48rpx;
+  font-size: 42rpx;
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -186,7 +186,7 @@ onShow(async () => {
   min-width: 0;
 }
 .name {
-  font-size: 40rpx;
+  font-size: 36rpx;
   font-weight: 600;
   color: $brand-deep;
   margin-bottom: 10rpx;
@@ -216,7 +216,7 @@ onShow(async () => {
   gap: 6rpx;
 }
 .stat-num {
-  font-size: 44rpx;
+  font-size: 40rpx;
   font-weight: 700;
   color: $brand-deep;
 }
@@ -231,7 +231,7 @@ onShow(async () => {
 }
 .services-title {
   padding: 0 20rpx 20rpx;
-  font-size: 30rpx;
+  font-size: 28rpx;
   font-weight: 600;
 }
 .service-grid {
@@ -287,7 +287,7 @@ onShow(async () => {
   }
 }
 .tile-title {
-  font-size: 32rpx;
+  font-size: 30rpx;
   font-weight: 600;
 }
 .tile-sub {
@@ -299,7 +299,7 @@ onShow(async () => {
   margin-top: 28rpx;
 }
 .demo-title {
-  font-size: 30rpx;
+  font-size: 28rpx;
   font-weight: 600;
   margin-bottom: 8rpx;
 }

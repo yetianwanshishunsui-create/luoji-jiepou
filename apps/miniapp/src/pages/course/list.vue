@@ -146,7 +146,7 @@ onReachBottom(() => fetchPage());
   position: relative;
   padding: 24rpx 4rpx 18rpx;
   margin-right: 44rpx;
-  font-size: 30rpx;
+  font-size: 28rpx;
   color: $text-secondary;
   &.active {
     color: $text;
@@ -189,7 +189,7 @@ onReachBottom(() => fetchPage());
   background: linear-gradient(110deg, #ffffff 30%, #e6efff);
 }
 .schedule-title {
-  font-size: 30rpx;
+  font-size: 28rpx;
   font-weight: 600;
   margin-bottom: 4rpx;
 }
@@ -230,7 +230,7 @@ onReachBottom(() => fetchPage());
   justify-content: center;
   box-sizing: border-box;
   &.all {
-    font-size: 30rpx;
+    font-size: 28rpx;
     font-weight: 600;
     color: $brand;
   }

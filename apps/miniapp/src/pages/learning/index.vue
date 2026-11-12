@@ -92,7 +92,7 @@ onShow(async () => {
   flex-shrink: 0;
 }
 .plan-day {
-  font-size: 36rpx;
+  font-size: 32rpx;
   font-weight: 700;
   color: $brand;
   line-height: 1.1;

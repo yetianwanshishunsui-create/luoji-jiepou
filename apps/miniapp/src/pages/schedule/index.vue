@@ -227,7 +227,7 @@ onShow(async () => {
   text-align: center;
   padding: 16rpx 0;
   border-radius: 999rpx;
-  font-size: 28rpx;
+  font-size: 26rpx;
   color: $text-secondary;
   &.on {
     background: $brand-grad;
@@ -246,11 +246,11 @@ onShow(async () => {
 }
 .cal-nav {
   padding: 0 20rpx;
-  font-size: 40rpx;
+  font-size: 36rpx;
   color: $brand;
 }
 .cal-month {
-  font-size: 30rpx;
+  font-size: 28rpx;
   font-weight: 600;
   min-width: 220rpx;
   text-align: center;
@@ -311,7 +311,7 @@ onShow(async () => {
   }
 }
 .day-num {
-  font-size: 28rpx;
+  font-size: 26rpx;
 }
 .day-dots {
   display: flex;
@@ -348,7 +348,7 @@ onShow(async () => {
   margin: 36rpx 36rpx 8rpx;
 }
 .day-title {
-  font-size: 32rpx;
+  font-size: 30rpx;
   font-weight: 600;
 }
 .timeline {
@@ -379,7 +379,7 @@ onShow(async () => {
   }
 }
 .tl-clock {
-  font-size: 30rpx;
+  font-size: 28rpx;
   font-weight: 600;
   color: $brand;
 }
@@ -411,7 +411,7 @@ onShow(async () => {
   }
 }
 .tl-title {
-  font-size: 30rpx;
+  font-size: 28rpx;
   font-weight: 600;
   line-height: 1.45;
   padding-bottom: 14rpx;
@@ -469,7 +469,7 @@ onShow(async () => {
   border-top-width: 14rpx;
 }
 .empty-text {
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 500;
 }
 .empty-go {

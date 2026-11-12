@@ -265,7 +265,7 @@ onShow(() => {
   margin-right: 44rpx;
 }
 .title {
-  font-size: 36rpx;
+  font-size: 32rpx;
   font-weight: 600;
   line-height: 1.45;
 }
@@ -283,7 +283,7 @@ onShow(() => {
   gap: 16rpx;
 }
 .big {
-  font-size: 40rpx;
+  font-size: 36rpx;
 }
 .offline-tag {
   padding: 2rpx 14rpx;
@@ -336,7 +336,7 @@ onShow(() => {
 }
 .sheet-title {
   text-align: center;
-  font-size: 32rpx;
+  font-size: 30rpx;
   font-weight: 600;
   margin-bottom: 16rpx;
 }
@@ -444,7 +444,7 @@ onShow(() => {
   }
 }
 .fav-icon {
-  font-size: 40rpx;
+  font-size: 36rpx;
   line-height: 1.1;
 }
 .bar-btn {
